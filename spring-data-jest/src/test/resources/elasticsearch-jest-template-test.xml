@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:elasticsearch="http://www.springframework.org/schema/data/elasticsearch"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd http://www.springframework.org/schema/data/elasticsearch http://www.springframework.org/schema/data/elasticsearch/spring-elasticsearch.xsd">
+
+    <!-- Elastic search test node -->
+    <elasticsearch:node-client id="client" local="true" cluster-name="#{T(java.util.UUID).randomUUID().toString()}"
+                               http-enabled="true" path-data="target/elasticsearchTestData" path-home="src/test/resources/test-home-dir"
+                               path-configuration="node-client-configuration.yml"/>
+
+
+    <!-- ElasticSearch Jest Client -->
+    <bean id="jestClient" factory-bean="jestClientFactory" factory-method="getObject" destroy-method="shutdownClient" />
+
+    <bean id="jestClientConfigBuilder" class="io.searchbox.client.config.HttpClientConfig.Builder">
+        <constructor-arg type="java.lang.String" value="http://localhost:9200"/>
+    </bean>
+
+    <bean id="jestClientConfig" factory-bean="jestClientConfigBuilder" factory-method="build"/>
+
+    <bean id="jestClientFactory" class="io.searchbox.client.JestClientFactory">
+        <property name="httpClientConfig" ref="jestClientConfig"/>
+    </bean>
+
+    <!-- Elasticsearch Jest Template -->
+    <bean id="jestElasticsearchTemplate" class="com.github.vanroy.springdata.jest.JestElasticsearchTemplate">
+        <constructor-arg ref="jestClient"/>
+    </bean>
+
+</beans>

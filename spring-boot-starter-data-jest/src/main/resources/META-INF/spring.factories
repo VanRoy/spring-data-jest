@@ -1,0 +1,4 @@
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.github.vanroy.springboot.autoconfigure.data.jest.ElasticsearchJestAutoConfiguration,\
+com.github.vanroy.springboot.autoconfigure.data.jest.ElasticsearchJestDataAutoConfiguration
