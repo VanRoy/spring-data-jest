@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.github.vanroy</groupId>
+	<artifactId>spring-data-jest-build</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>Spring Data Jest Build</name>
+	<description>Build configuration of Spring Data Implementation for Jest</description>
+	<url>https://github.com/vanroy/spring-data-jest</url>
+
+	<developers>
+		<developer>
+			<id>vanroy</id>
+			<name>Julien Roy</name>
+			<email>julien.vanroy@gmail.com</email>
+			<url>http://github.com/vanroy</url>
+			<timezone>+1</timezone>
+			<roles>
+				<role>Java Developer</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
+	</licenses>
+
+	<scm>
+		<url>https://github.com/vanroy/spring-data-jest/</url>
+		<connection>scm:git:ssh://git@github.com/vanroy/spring-data-jest.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/vanroy/spring-data-jest.git</developerConnection>
+	</scm>
+
+	<prerequisites>
+		<maven>3.0.0</maven>
+	</prerequisites>
+
+	<properties>
+
+		<!-- Java Version -->
+		<java.version>1.8</java.version>
+
+		<!-- Dependencies version -->
+		<springboot>1.3.5.RELEASE</springboot>
+		<spring>4.1.9.RELEASE</spring>
+		<springdataes>1.3.4.RELEASE</springdataes>
+		<jest>1.0.3</jest>
+		<gson>2.4</gson>
+		<hamcrest>1.3</hamcrest>
+		<junit>4.12</junit>
+		<lombok>1.16.8</lombok>
+		<mockito>1.10.19</mockito>
+
+		<!-- Version of maven plugins -->
+		<version.plugin.maven-source-plugin>2.1.2</version.plugin.maven-source-plugin>
+		<version.plugin.maven-javadoc-plugin>2.7</version.plugin.maven-javadoc-plugin>
+		<version.plugin.maven-release-plugin>2.5</version.plugin.maven-release-plugin>
+		<version.plugin.nexus-staging-maven-plugin>1.6.2</version.plugin.nexus-staging-maven-plugin>
+		<version.plugin.maven-gpg-plugin>1.6</version.plugin.maven-gpg-plugin>
+
+		<!-- Source encoding -->
+		<source.encoding>UTF-8</source.encoding>
+
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+
+			<!-- Spring Data Elasticsearch -->
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-elasticsearch</artifactId>
+				<version>${springdataes}</version>
+			</dependency>
+
+			<!-- JEST -->
+			<dependency>
+				<groupId>io.searchbox</groupId>
+				<artifactId>jest</artifactId>
+				<version>${jest}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.google.code.gson</groupId>
+				<artifactId>gson</artifactId>
+				<version>${gson}</version>
+			</dependency>
+
+			<!-- Test -->
+			<dependency>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest-library</artifactId>
+				<version>${hamcrest}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest-core</artifactId>
+				<version>${hamcrest}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>${junit}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-core</artifactId>
+				<version>${mockito}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-test</artifactId>
+				<version>${spring}</version>
+				<scope>test</scope>
+				<exclusions>
+					<exclusion>
+						<groupId>commons-logging</groupId>
+						<artifactId>commons-logging</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombok}</version>
+				<scope>test</scope>
+			</dependency>
+
+		</dependencies>
+
+	</dependencyManagement>
+
+	<modules>
+		<module>spring-data-jest</module>
+		<module>spring-boot-starter-data-jest</module>
+		<module>spring-boot-sample-data-jest</module>
+	</modules>
+
+	<!-- Deploy snapshots to the Sonatype OSSRH (OSS Repository Hosting) -->
+	<distributionManagement>
+		<downloadUrl>https://github.com/vanroy/spring-data-jest</downloadUrl>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<profiles>
+		<profile>
+			<!-- Specific profile for release or artifact deployment -->
+			<!-- Sources et javadoc are packaged -->
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>${version.plugin.maven-gpg-plugin}</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>
