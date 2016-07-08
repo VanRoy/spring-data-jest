@@ -5,7 +5,7 @@
 
 	<groupId>com.github.vanroy</groupId>
 	<artifactId>spring-data-jest-build</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0.RELEASE</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data Jest Build</name>
@@ -62,7 +62,7 @@
 		<version.plugin.maven-source-plugin>2.1.2</version.plugin.maven-source-plugin>
 		<version.plugin.maven-javadoc-plugin>2.7</version.plugin.maven-javadoc-plugin>
 		<version.plugin.maven-release-plugin>2.5</version.plugin.maven-release-plugin>
-		<version.plugin.nexus-staging-maven-plugin>1.6.2</version.plugin.nexus-staging-maven-plugin>
+		<version.plugin.nexus-staging-maven-plugin>1.6.7</version.plugin.nexus-staging-maven-plugin>
 		<version.plugin.maven-gpg-plugin>1.6</version.plugin.maven-gpg-plugin>
 
 		<!-- Source encoding -->
@@ -146,12 +146,6 @@
 
 	</dependencyManagement>
 
-	<modules>
-		<module>spring-data-jest</module>
-		<module>spring-boot-starter-data-jest</module>
-		<module>spring-boot-sample-data-jest</module>
-	</modules>
-
 	<!-- Deploy snapshots to the Sonatype OSSRH (OSS Repository Hosting) -->
 	<distributionManagement>
 		<downloadUrl>https://github.com/vanroy/spring-data-jest</downloadUrl>
@@ -167,14 +161,30 @@
 
 	<profiles>
 		<profile>
+			<id>default</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<modules>
+				<module>spring-data-jest</module>
+				<module>spring-boot-starter-data-jest</module>
+				<module>spring-boot-sample-data-jest</module>
+			</modules>
+		</profile>
+		<profile>
 			<!-- Specific profile for release or artifact deployment -->
 			<!-- Sources et javadoc are packaged -->
 			<id>release</id>
+			<modules>
+				<module>spring-data-jest</module>
+				<module>spring-boot-starter-data-jest</module>
+			</modules>
 			<build>
 				<plugins>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
+						<version>${version.plugin.maven-source-plugin}</version>
 						<executions>
 							<execution>
 								<id>attach-sources</id>
@@ -187,6 +197,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>${version.plugin.maven-javadoc-plugin}</version>
 						<executions>
 							<execution>
 								<id>attach-sources</id>
@@ -195,6 +206,28 @@
 								</goals>
 							</execution>
 						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-release-plugin</artifactId>
+						<version>${version.plugin.maven-release-plugin}</version>
+						<configuration>
+							<autoVersionSubmodules>true</autoVersionSubmodules>
+							<useReleaseProfile>false</useReleaseProfile>
+							<releaseProfiles>release</releaseProfiles>
+							<goals>deploy</goals>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>${version.plugin.nexus-staging-maven-plugin}</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>ossrh</serverId>
+							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+							<autoReleaseAfterClose>false</autoReleaseAfterClose>
+						</configuration>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
