@@ -234,8 +234,19 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 			JestResult result = execute(getMappingBuilder.build());
 
-			//TODO(Transform to map)
-			//mappings = result.getJsonObject().get(indexName).getAsJsonObject().get(type);
+			if (!result.getJsonObject().has(indexName)) {
+				logger.info("Index {} did not exist when retrieving mappings for type {}.", indexName, type);
+			} else {
+				JsonObject index = result.getJsonObject().get(indexName).getAsJsonObject();
+				if (index != null) {
+					JsonObject mappingElem = index.get("mappings").getAsJsonObject();
+					if (!mappingElem.has(type)) {
+						logger.info("Type {} did not exist in index {} when retrieving mappings.", type, indexName);
+					} else {
+						mappings = resultsMapper.getEntityMapper().mapToObject(mappingElem.get(type).toString(), Map.class);
+					}
+				}
+			}
 
 		} catch (Exception e) {
 			throw new ElasticsearchException("Error while getting mapping for indexName : " + indexName + " type : " + type + " " + e.getMessage());
