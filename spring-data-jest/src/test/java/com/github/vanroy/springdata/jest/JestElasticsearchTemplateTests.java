@@ -34,6 +34,8 @@ import com.google.gson.JsonObject;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.SearchResult;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.script.Script;
@@ -42,7 +44,6 @@ import org.elasticsearch.search.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -1185,6 +1186,30 @@ public class JestElasticsearchTemplateTests {
 		// when
 		assertThat(elasticsearchTemplate.putMapping(entity), is(true));
 	}
+
+	@Test
+	public void shouldPutXContentBuilderMappingForGivenEntity() throws Exception {
+		// given
+		Class entity = SampleMappingEntity.class;
+		elasticsearchTemplate.createIndex(entity);
+
+		XContentBuilder xContentBuilder = JsonXContent.contentBuilder()
+			.startObject()
+			.field("properties")
+				.startObject()
+				.field("message")
+					.startObject()
+						.field("type", "string")
+						.field("index", "not_analyzed")
+						.field("store", true)
+						.field("analyzer", "standard")
+					.endObject()
+			.endObject();
+
+		// when
+		assertThat(elasticsearchTemplate.putMapping("test-mapping", "mapping", xContentBuilder), is(true));
+	}
+
 
 	@Test
 	public void shouldDeleteIndexForGivenEntity() {
