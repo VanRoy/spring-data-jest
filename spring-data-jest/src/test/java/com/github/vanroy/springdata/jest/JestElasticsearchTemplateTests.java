@@ -1035,6 +1035,23 @@ public class JestElasticsearchTemplateTests {
 	}
 
 	@Test
+	public void shouldGetMappingForGivenEntity() throws Exception {
+		// given
+		Class entity = SampleMappingEntity.class;
+		elasticsearchTemplate.createIndex(entity);
+		elasticsearchTemplate.putMapping(entity);
+		// when
+		Map<String, Map<String, Map<String, String>>> mapping = elasticsearchTemplate.getMapping(entity);
+		// then
+		assertThat(mapping.containsKey("properties"), is(true));
+		assertThat(mapping.get("properties").containsKey("message"), is(true));
+		assertThat(mapping.get("properties").get("message").get("type"), is("string"));
+		assertThat(mapping.get("properties").get("message").get("index"), is("not_analyzed"));
+		assertThat(mapping.get("properties").get("message").get("store"), is(true));
+		assertThat(mapping.get("properties").get("message").get("analyzer"), is("standard"));
+	}
+
+	@Test
 	public void shouldPutMappingForGivenEntity() throws Exception {
 		// given
 		Class entity = SampleMappingEntity.class;
