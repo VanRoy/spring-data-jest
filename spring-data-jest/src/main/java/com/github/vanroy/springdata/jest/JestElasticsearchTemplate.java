@@ -40,6 +40,9 @@ import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.mapper.DocumentMapper;
 import org.elasticsearch.index.query.FilterBuilder;
 import org.elasticsearch.index.query.MoreLikeThisQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -203,9 +206,27 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		Assert.notNull(indexName, "No index defined for putMapping()");
 		Assert.notNull(type, "No type defined for putMapping()");
 
-		PutMapping.Builder requestBuilder = new PutMapping.Builder(indexName, type, mapping);
+		try {
+			Object source = null;
+			if (mapping instanceof String) {
+				source = String.valueOf(mapping);
+			} else if (mapping instanceof Map) {
+				XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON);
+				builder.map((Map)mapping);
+				source = builder.string();
+			} else if (mapping instanceof XContentBuilder) {
+				source = ((XContentBuilder) mapping).string();
+			} else if (mapping instanceof DocumentMapper) {
+				source = ((DocumentMapper) mapping).mappingSource().toString();
+			}
 
-		return executeWithAcknowledge(requestBuilder.build());
+			PutMapping.Builder requestBuilder = new PutMapping.Builder(indexName, type, source);
+
+			return executeWithAcknowledge(requestBuilder.build());
+
+		} catch (Exception e) {
+			throw new ElasticsearchException("Failed to build mapping for " + indexName + ":" + type, e);
+		}
 	}
 
 	@Override
