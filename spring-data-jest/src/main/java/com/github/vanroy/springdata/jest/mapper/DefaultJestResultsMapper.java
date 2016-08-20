@@ -68,7 +68,7 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 	}
 
 	public <T> T mapResult(DocumentResult response, Class<T> clazz) {
-		T result = mapEntity(response.getJsonObject().get("_source").toString(), clazz);
+		T result = mapEntity(response.getSourceAsString(), clazz);
 		if (result != null) {
 			setPersistentEntityId(result, response.getId(), clazz);
 		}
