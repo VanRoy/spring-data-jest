@@ -1366,6 +1366,29 @@ public class JestElasticsearchTemplateTests {
 	}
 
 	@Test
+	public void shouldIndexNotDocumentEntity() {
+
+		// given
+		BasicEntity entity = new BasicEntity(randomNumeric(1), "aFirstName");
+
+		IndexQuery indexQuery = new IndexQuery();
+		indexQuery.setObject(entity);
+		indexQuery.setIndexName(INDEX_NAME);
+		indexQuery.setType(TYPE_NAME);
+		// when
+		String id = elasticsearchTemplate.index(indexQuery);
+		elasticsearchTemplate.refresh(SampleEntity.class);
+
+		GetQuery query = new GetQuery();
+		query.setId(id);
+		AnnotatedBasicEntity indexedEntity = elasticsearchTemplate.queryForObject(query, AnnotatedBasicEntity.class);
+
+		assertThat(indexedEntity, is(notNullValue()));
+		assertThat(indexedEntity.getId(), equalTo(id));
+		assertThat(indexedEntity.getFirstName(), equalTo(entity.getFirstName()));
+	}
+
+	@Test
 	public void shouldIndexDocumentForSpecifiedSource() {
 
 		// given

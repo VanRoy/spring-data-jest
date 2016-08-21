@@ -640,7 +640,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		String documentId = execute(prepareIndex(query)).getId();
 
 		// We should call this because we are not going through a mapper.
-		if (query.getObject() != null) {
+		if (query.getObject() != null && isDocument(query.getObject().getClass())) {
 			setPersistentEntityId(query.getObject(), documentId);
 		}
 		return documentId;
