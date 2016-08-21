@@ -47,7 +47,6 @@ import org.elasticsearch.index.mapper.DocumentMapper;
 import org.elasticsearch.index.query.MoreLikeThisQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.highlight.HighlightBuilder;
@@ -168,9 +167,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		if (settings instanceof String) {
 			createIndexBuilder.settings(String.valueOf(settings));
 		} else if (settings instanceof Map) {
-			createIndexBuilder.settings((Map) settings);
+			createIndexBuilder.settings(settings);
 		} else if (settings instanceof XContentBuilder) {
-			createIndexBuilder.settings((XContentBuilder) settings);
+			createIndexBuilder.settings(settings);
 		}
 
 		return executeWithAcknowledge(createIndexBuilder.build());
@@ -289,7 +288,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 				.get("settings").getAsJsonObject()
 				.get("index").getAsJsonObject();
 
-		HashMap<String, String> mappings = new HashMap<String, String>();
+		HashMap<String, String> mappings = new HashMap<>();
 
 		flatMap("index", entries, mappings);
 
@@ -665,7 +664,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		BulkResult bulkResult = new BulkResult(execute(bulk.build()));
 		if (!bulkResult.isSucceeded()) {
-			Map<String, String> failedDocuments = new HashMap<String, String>();
+			Map<String, String> failedDocuments = new HashMap<>();
 			for (BulkResult.BulkResultItem item : bulkResult.getFailedItems()) {
 				failedDocuments.put(item.id, item.error);
 			}
@@ -687,7 +686,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		BulkResult bulkResult = new BulkResult(execute(bulk.build()));
 		if (!bulkResult.isSucceeded()) {
-			Map<String, String> failedDocuments = new HashMap<String, String>();
+			Map<String, String> failedDocuments = new HashMap<>();
 			for (BulkResult.BulkResultItem item : bulkResult.getFailedItems()) {
 				failedDocuments.put(item.id, item.error);
 			}
@@ -724,7 +723,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		String indexName = isNotBlank(deleteQuery.getIndex()) ? deleteQuery.getIndex() : getPersistentEntityFor(clazz).getIndexName();
 		String typeName = isNotBlank(deleteQuery.getType()) ? deleteQuery.getType() : getPersistentEntityFor(clazz).getIndexType();
 		Integer pageSize = deleteQuery.getPageSize() != null ? deleteQuery.getPageSize() : 1000;
-		Long scrollTimeInMillis = deleteQuery.getScrollTimeInMillis() != null ? deleteQuery.getScrollTimeInMillis() : 10000l;
+		Long scrollTimeInMillis = deleteQuery.getScrollTimeInMillis() != null ? deleteQuery.getScrollTimeInMillis() : 10000L;
 
 		SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(deleteQuery.getQuery())
 				.withIndices(indexName)
@@ -734,20 +733,20 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		String scrollId = scan(searchQuery, scrollTimeInMillis, true);
 
-		List<String> ids = new ArrayList<String>();
+		List<String> ids = new ArrayList<>();
 		boolean hasRecords = true;
 		while (hasRecords) {
 			Page<String> page = scroll(scrollId, scrollTimeInMillis, new JestScrollResultMapper() {
 				@Override
 				public <T> Page<T> mapResults(SearchScrollResult response, Class<T> clazz) {
-					List<String> result = new ArrayList<String>();
+					List<String> result = new ArrayList<>();
 
 					for (SearchScrollResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
 						result.add(searchHit.source.get(JestResult.ES_METADATA_ID).getAsString());
 					}
 
 					if (result.size() > 0) {
-						return new PageImpl<T>((List<T>) result);
+						return new PageImpl<>((List<T>) result);
 					}
 					return null;
 				}
@@ -1003,7 +1002,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		Set<Map.Entry<String, JsonElement>> entries = result.getJsonObject().getAsJsonObject(indexName).getAsJsonObject("aliases").entrySet();
 
-		List<AliasMetaData> aliases = new ArrayList<AliasMetaData>(entries.size());
+		List<AliasMetaData> aliases = new ArrayList<>(entries.size());
 		for (Map.Entry<String, JsonElement> entry : entries) {
 			aliases.add(AliasMetaData.newAliasMetaDataBuilder(entry.getKey()).build());
 		}
@@ -1166,7 +1165,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		Assert.notNull(query.getId(), "No Id define for Query");
 		Assert.notNull(query.getUpdateRequest(), "No IndexRequest define for Query");
 
-		Map<String, Object> payLoadMap = new HashMap<String, Object>();
+		Map<String, Object> payLoadMap = new HashMap<>();
 
 		if (query.getUpdateRequest().script() == null) {
 
@@ -1300,7 +1299,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	private List<String> extractIds(SearchResult result) {
-		List<String> ids = new ArrayList<String>();
+		List<String> ids = new ArrayList<>();
 		for (SearchResult.Hit<JsonObject, Void> hit : result.getHits(JsonObject.class)) {
 			if (hit != null) {
 				ids.add(hit.source.get(JestResult.ES_METADATA_ID).toString());

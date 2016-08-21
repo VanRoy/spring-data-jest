@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.github.vanroy.springdata.jest.entities.*;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
@@ -79,7 +80,7 @@ public class JestElasticsearchTemplateTests {
 	private JestElasticsearchTemplate elasticsearchTemplate;
 
 	private static List<IndexQuery> createSampleEntitiesWithMessage(String message, int numberOfEntities) {
-		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
+		List<IndexQuery> indexQueries = new ArrayList<>();
 		for (int i = 0; i < numberOfEntities; i++) {
 			String documentId = UUID.randomUUID().toString();
 			SampleEntity sampleEntity = new SampleEntity();
@@ -160,9 +161,20 @@ public class JestElasticsearchTemplateTests {
 	}
 
 	@Test
+	public void shouldReturnNullForInexistentId() {
+		// given
+		// when
+		GetQuery getQuery = new GetQuery();
+		getQuery.setId("1");
+		SampleEntity sampleEntity1 = elasticsearchTemplate.queryForObject(getQuery, SampleEntity.class);
+		// then
+		assertNull("entity must be null....", sampleEntity1);
+	}
+
+	@Test
 	public void shouldReturnObjectsForGivenIdsUsingMultiGet() {
 		// given
-		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
+		List<IndexQuery> indexQueries;
 		// first document
 		String documentId = randomNumeric(5);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("some message")
@@ -190,7 +202,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnObjectsForGivenIdsUsingMultiGetWithFields() {
 		// given
-		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
+		List<IndexQuery> indexQueries;
 		// first document
 		String documentId = randomNumeric(5);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
@@ -218,7 +230,7 @@ public class JestElasticsearchTemplateTests {
 		LinkedList<SampleEntity> sampleEntities = elasticsearchTemplate.multiGet(query, SampleEntity.class, new JestMultiGetResultMapper() {
 			@Override
 			public <T> LinkedList<T> mapResults(MultiDocumentResult responses, Class<T> clazz) {
-				LinkedList<T> list = new LinkedList<T>();
+				LinkedList<T> list = new LinkedList<>();
 				for (MultiDocumentResult.MultiDocumentResultItem response : responses.getItems()) {
 					SampleEntity entity = new SampleEntity();
 					entity.setId(response.getId());
@@ -253,12 +265,13 @@ public class JestElasticsearchTemplateTests {
 		// then
 		assertThat(sampleEntities, is(notNullValue()));
 		assertThat(sampleEntities.getTotalElements(), greaterThanOrEqualTo(1L));
+		assertThat(sampleEntities.getContent().get(0), is(sampleEntity));
 	}
 
 	@Test
 	public void shouldDoBulkIndex() {
 		// given
-		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
+		List<IndexQuery> indexQueries;
 		// first document
 		String documentId = randomNumeric(5);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("some message")
@@ -301,7 +314,7 @@ public class JestElasticsearchTemplateTests {
 		UpdateQuery updateQuery = new UpdateQueryBuilder().withId(documentId)
 				.withClass(SampleEntity.class).withIndexRequest(indexRequest).build();
 
-		List<UpdateQuery> queries = new ArrayList<UpdateQuery>();
+		List<UpdateQuery> queries = new ArrayList<>();
 		queries.add(updateQuery);
 
 		// when
@@ -396,7 +409,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldSortResultsGivenSortCriteria() {
 		// given
-		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
+		List<IndexQuery> indexQueries;
 		// first document
 		String documentId = randomNumeric(5);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
@@ -435,7 +448,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldSortResultsGivenMultipleSortCriteria() {
 		// given
-		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
+		List<IndexQuery> indexQueries;
 		// first document
 		String documentId = randomNumeric(5);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
@@ -490,6 +503,7 @@ public class JestElasticsearchTemplateTests {
 		Page<SampleEntity> sampleEntities = elasticsearchTemplate.queryForPage(stringQuery, SampleEntity.class);
 		// then
 		assertThat(sampleEntities.getTotalElements(), equalTo(1L));
+		assertThat(sampleEntities.getContent().get(0), equalTo(sampleEntity));
 	}
 
 	@Test
@@ -510,7 +524,7 @@ public class JestElasticsearchTemplateTests {
 		elasticsearchTemplate.index(indexQuery);
 		elasticsearchTemplate.refresh(SampleEntity.class);
 
-		Map<String, Object> params = new HashMap<String, Object>();
+		Map<String, Object> params = new HashMap<>();
 		params.put("factor", 2);
 		// when
 		SearchQuery searchQuery = new NativeSearchQueryBuilder()
@@ -596,8 +610,8 @@ public class JestElasticsearchTemplateTests {
 		final Map setting = elasticsearchTemplate.getSetting(SampleEntity.class);
 		// then
 		assertThat(created, is(true));
-		assertThat(setting.get("index.number_of_shards"), Matchers.<Object>is("1"));
-		assertThat(setting.get("index.number_of_replicas"), Matchers.<Object>is("0"));
+		assertThat(setting.get("index.number_of_shards"), Matchers.is("1"));
+		assertThat(setting.get("index.number_of_replicas"), Matchers.is("0"));
 	}
 
 	@Test
@@ -753,7 +767,7 @@ public class JestElasticsearchTemplateTests {
 		criteriaQuery.setPageable(new PageRequest(0, 10));
 
 		String scrollId = elasticsearchTemplate.scan(criteriaQuery, 1000, false);
-		List<SampleEntity> sampleEntities = new ArrayList<SampleEntity>();
+		List<SampleEntity> sampleEntities = new ArrayList<>();
 		boolean hasRecords = true;
 		while (hasRecords) {
 			Page<SampleEntity> page = elasticsearchTemplate.scroll(scrollId, 5000L, SampleEntity.class);
@@ -765,6 +779,7 @@ public class JestElasticsearchTemplateTests {
 		}
 		elasticsearchTemplate.clearScroll(scrollId);
 		assertThat(sampleEntities.size(), is(equalTo(30)));
+		assertThat(sampleEntities, containsInAnyOrder(entities.stream().map(IndexQuery::getObject).map(Matchers::equalTo).collect(Collectors.toList())));
 	}
 
 	@Test
@@ -1420,7 +1435,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnDocumentAboveMinimalScoreGivenQuery() {
 		// given
-		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
+		List<IndexQuery> indexQueries = new ArrayList<>();
 
 		indexQueries.add(buildIndex(SampleEntity.builder().id("1").message("ab").build()));
 		indexQueries.add(buildIndex(SampleEntity.builder().id("2").message("bc").build()));
@@ -1468,7 +1483,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldDoBulkIndexWithoutId() {
 		// given
-		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
+		List<IndexQuery> indexQueries = new ArrayList<>();
 		// first document
 		SampleEntity sampleEntity1 = new SampleEntity();
 		sampleEntity1.setMessage("some message");
@@ -1501,14 +1516,14 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldIndexMapWithIndexNameAndTypeAtRuntime() {
 		//given
-		Map<String, Object> person1 = new HashMap<String, Object>();
+		Map<String, Object> person1 = new HashMap<>();
 		person1.put("userId", "1");
 		person1.put("email", "smhdiu@gmail.com");
 		person1.put("title", "Mr");
 		person1.put("firstName", "Mohsin");
 		person1.put("lastName", "Husen");
 
-		Map<String, Object> person2 = new HashMap<String, Object>();
+		Map<String, Object> person2 = new HashMap<>();
 		person2.put("userId", "2");
 		person2.put("email", "akonczak@gmail.com");
 		person2.put("title", "Mr");
@@ -1527,7 +1542,7 @@ public class JestElasticsearchTemplateTests {
 		indexQuery2.setIndexName(INDEX_NAME);
 		indexQuery2.setType(TYPE_NAME);
 
-		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
+		List<IndexQuery> indexQueries = new ArrayList<>();
 		indexQueries.add(indexQuery1);
 		indexQueries.add(indexQuery2);
 
@@ -1541,7 +1556,7 @@ public class JestElasticsearchTemplateTests {
 		Page<Map> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, Map.class, new JestSearchResultMapper() {
 			@Override
 			public <T> Page<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
-				List<Map> chunk = new ArrayList<Map>();
+				List<Map> chunk = new ArrayList<>();
 				for (SearchResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
 					if (response.getHits(JsonObject.class).size() <= 0) {
 						return null;
@@ -1955,10 +1970,10 @@ public class JestElasticsearchTemplateTests {
 		assertThat(map.containsKey("index.number_of_replicas"), is(true));
 		assertThat(map.containsKey("index.number_of_shards"), is(true));
 		assertThat(map.containsKey("index.store.type"), is(true));
-		assertThat((String) map.get("index.refresh_interval"), is("-1"));
-		assertThat((String) map.get("index.number_of_replicas"), is("0"));
-		assertThat((String) map.get("index.number_of_shards"), is("1"));
-		assertThat((String) map.get("index.store.type"), is("fs"));
+		assertThat(map.get("index.refresh_interval"), is("-1"));
+		assertThat(map.get("index.number_of_replicas"), is("0"));
+		assertThat(map.get("index.number_of_shards"), is("1"));
+		assertThat(map.get("index.store.type"), is("fs"));
 	}
 
 	/*
@@ -1991,8 +2006,8 @@ public class JestElasticsearchTemplateTests {
 		assertThat(elasticsearchTemplate.indexExists("test-index"), is(true));
 		assertThat(map.containsKey("index.number_of_replicas"), is(true));
 		assertThat(map.containsKey("index.number_of_shards"), is(true));
-		assertThat((String) map.get("index.number_of_replicas"), is("0"));
-		assertThat((String) map.get("index.number_of_shards"), is("1"));
+		assertThat(map.get("index.number_of_replicas"), is("0"));
+		assertThat(map.get("index.number_of_shards"), is("1"));
 	}
 
 	@Test
@@ -2055,18 +2070,18 @@ public class JestElasticsearchTemplateTests {
 		Page<ResultAggregator> page = elasticsearchTemplate.queryForPage(searchQuery, ResultAggregator.class, new JestSearchResultMapper() {
 			@Override
 			public <T> Page<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
-				List<ResultAggregator> values = new ArrayList<ResultAggregator>();
+				List<ResultAggregator> values = new ArrayList<>();
 				for (SearchResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
 					String id = String.valueOf(searchHit.source.get("id"));
 					String firstName = searchHit.source.get("firstName") != null ? searchHit.source.get("firstName").getAsString() : "";
 					String lastName = searchHit.source.get("lastName") != null ? searchHit.source.get("lastName").getAsString() : "";
 					values.add(new ResultAggregator(id, firstName, lastName));
 				}
-				return new PageImpl<T>((List<T>) values);
+				return new PageImpl<>((List<T>) values);
 			}
 		});
 
-		assertThat(page.getTotalElements(), is(2l));
+		assertThat(page.getTotalElements(), is(2L));
 	}
 
 	@Test
@@ -2078,8 +2093,8 @@ public class JestElasticsearchTemplateTests {
 		//then
 		assertThat(created, is(true));
 		final Map setting = elasticsearchTemplate.getSetting(UseServerConfigurationEntity.class);
-		assertThat(setting.get("index.number_of_shards"), Matchers.<Object>is("5"));
-		assertThat(setting.get("index.number_of_replicas"), Matchers.<Object>is("1"));
+		assertThat(setting.get("index.number_of_shards"), Matchers.is("5"));
+		assertThat(setting.get("index.number_of_replicas"), Matchers.is("1"));
 	}
 
 	@Test
@@ -2116,9 +2131,9 @@ public class JestElasticsearchTemplateTests {
 	@Document(indexName = INDEX_2_NAME, replicas = 0, shards = 1)
 	class ResultAggregator {
 
-		private String id;
-		private String firstName;
-		private String lastName;
+		private final String id;
+		private final String firstName;
+		private final String lastName;
 
 		ResultAggregator(String id, String firstName, String lastName) {
 			this.id = id;
