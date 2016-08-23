@@ -44,6 +44,9 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 	@Autowired(required = false)
 	private ElasticsearchProperties esNodeproperties;
 
+	@Autowired(required = false)
+	private JestClientFactory jestClientFactory;
+
 	private Releasable releasable;
 
 	@Bean
@@ -78,7 +81,7 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 			builder.defaultCredentials(this.properties.getUsername(), this.properties.getPassword());
 		}
 
-		JestClientFactory factory = new JestClientFactory();
+		JestClientFactory factory = jestClientFactory != null ? jestClientFactory : new JestClientFactory();
 		factory.setHttpClientConfig(builder.build());
 		return factory.getObject();
 	}

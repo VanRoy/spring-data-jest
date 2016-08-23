@@ -28,7 +28,17 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-boot-starter-data-jest</artifactId>
-    <version>2.0.0.RELEASE</version>
+    <version>2.1.0.RELEASE</version>
+</dependency>
+```
+
+For specific case of AWS ES Domain (with Request Signing) add this dependency:
+
+```xml
+<dependency>
+    <groupId>vc.inreach.aws</groupId>
+    <artifactId>aws-signing-request-interceptor</artifactId>
+    <version>0.0.14</version>
 </dependency>
 ```
 
@@ -48,6 +58,9 @@ spring:
     data:
         jest:
             uri: http://localhost:9200
+
+            # Useful only for AWS request signing ( not required on EC2 instance, it's auto-discovered )
+            aws-region: eu-west-1
 ```
 
 
@@ -62,7 +75,7 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-data-jest</artifactId>
-    <version>2.0.0.RELEASE</version>
+    <version>2.1.0.RELEASE</version>
 </dependency>
 ```
 

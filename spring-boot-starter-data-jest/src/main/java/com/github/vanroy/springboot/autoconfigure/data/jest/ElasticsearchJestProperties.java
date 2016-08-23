@@ -13,6 +13,8 @@ public class ElasticsearchJestProperties {
 	private String username;
 	private String password;
 
+	private String awsRegion;
+
 	private int maxTotalConnection = 50;
 	private int defaultMaxTotalConnectionPerRoute = 50;
 	private int readTimeout = 5000;
@@ -72,5 +74,13 @@ public class ElasticsearchJestProperties {
 
 	public void setMultiThreaded(Boolean multiThreaded) {
 		this.multiThreaded = multiThreaded;
+	}
+
+	public String getAwsRegion() {
+		return awsRegion;
+	}
+
+	public void setAwsRegion(String awsRegion) {
+		this.awsRegion = awsRegion;
 	}
 }

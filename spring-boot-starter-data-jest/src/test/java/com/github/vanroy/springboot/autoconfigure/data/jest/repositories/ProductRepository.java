@@ -10,8 +10,8 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  */
 public interface ProductRepository extends PagingAndSortingRepository<Product, String> {
 
-	public List<Product> findByNameAndText(String name, String text);
+	List<Product> findByNameAndText(String name, String text);
 
-	public List<Product> findByNameAndPrice(String name, Float price);
+	List<Product> findByNameAndPrice(String name, Float price);
 
 }

@@ -14,13 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = ElasticsearchJestAutoConfigurationTest.SpringBootStarterDataJestApplication.class)
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = ElasticsearchJestAutoConfigurationTest.SpringBootStarterDataJestApplication.class)
 public class ElasticsearchJestAutoConfigurationTest {
 
 	@Autowired
@@ -52,8 +51,12 @@ public class ElasticsearchJestAutoConfigurationTest {
 		assertThat(repository.findByNameAndPrice("Sugar", 1.1f).size(), is(1));
 	}
 
-	@SpringBootApplication(exclude = {ElasticsearchAutoConfiguration.class, ElasticsearchDataAutoConfiguration.class})
+	@SpringBootApplication(exclude = {
+		ElasticsearchAutoConfiguration.class,
+		ElasticsearchDataAutoConfiguration.class,
+		ElasticsearchJestAWSAutoConfiguration.class
+	},
+	scanBasePackageClasses = ProductRepository.class)
 	public static class SpringBootStarterDataJestApplication {
-
 	}
 }
