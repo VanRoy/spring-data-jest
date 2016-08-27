@@ -17,6 +17,7 @@ import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.mapper.*;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import io.searchbox.action.Action;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
@@ -1009,9 +1010,22 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		return aliases;
 	}
 
+	public ElasticsearchPersistentEntity getPersistentEntityFor(Class clazz) {
+		Assert.isTrue(clazz.isAnnotationPresent(Document.class), "Unable to identify index name. " + clazz.getSimpleName()
+				+ " is not a Document. Make sure the document class is annotated with @Document(indexName=\"foo\")");
+		return elasticsearchConverter.getMappingContext().getPersistentEntity(clazz);
+	}
+
 	private <T extends JestResult> T execute(Action<T> action) {
 		try {
-			return client.execute(action);
+
+			T result = client.execute(action);
+			if (!result.isSucceeded()) {
+				logger.error("Cannot execute jest action , response code : {} , error : {} , message : {}", result.getResponseCode(), result.getErrorMessage(), getMessage(result));
+			}
+
+			return result;
+
 		} catch (IOException e) {
 			throw new ElasticsearchException("failed to execute action", e);
 		}
@@ -1020,6 +1034,10 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private boolean executeWithAcknowledge(Action<?> action) {
 		try {
 			JestResult jestResult = client.execute(action);
+			if (!jestResult.isSucceeded()) {
+				logger.error("Cannot execute jest action , response code : {} , error : {} , message : {}", jestResult.getResponseCode(), jestResult.getErrorMessage(), getMessage(jestResult));
+			}
+
 			return jestResult.isSucceeded();
 		} catch (IOException e) {
 			throw new ElasticsearchException("failed to execute action", e);
@@ -1230,12 +1248,6 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		return clazz.isAnnotationPresent(Document.class);
 	}
 
-	public ElasticsearchPersistentEntity getPersistentEntityFor(Class clazz) {
-		Assert.isTrue(clazz.isAnnotationPresent(Document.class), "Unable to identify index name. " + clazz.getSimpleName()
-				+ " is not a Document. Make sure the document class is annotated with @Document(indexName=\"foo\")");
-		return elasticsearchConverter.getMappingContext().getPersistentEntity(clazz);
-	}
-
 	private String getPersistentEntityId(Object entity) {
 		PersistentProperty idProperty = getPersistentEntityFor(entity.getClass()).getIdProperty();
 		if (idProperty != null) {
@@ -1252,6 +1264,17 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			}
 		}
 		return null;
+	}
+
+	private <T extends JestResult> String getMessage(T result) {
+		if (result.getJsonObject() == null) {
+			return null;
+		}
+		JsonPrimitive message = result.getJsonObject().getAsJsonPrimitive("message");
+		if (message == null) {
+			return null;
+		}
+		return message.getAsString();
 	}
 
 	private static String[] toArray(List<String> values) {
