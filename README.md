@@ -13,7 +13,7 @@ Versions
 
 |   spring data jest | spring boot | spring data elasticsearch |  jest  | elasticsearch |
 |:------------------:|:-----------:|:-------------------------:|:------:|:-------------:|
-|   2.0.0.RELEASE    |    1.4.x    |       2.0.2.RELEASE       |  2.0.3 |      2.2.0    |
+|   2.0.1.RELEASE    |    1.4.x    |       2.0.2.RELEASE       |  2.0.3 |      2.2.0    |
 |   1.0.1.RELEASE    |    1.3.x    |       1.3.4.RELEASE       |  1.0.3 |      1.5.2    |
 
 
@@ -116,3 +116,14 @@ You can set up repository scanning via xml configuration, which will happily cre
 
 </beans>
 ```
+
+Samples
+-------------------------------
+
+Sample with Spring Boot and embedded Elasticsearch :
+
+[https://github.com/VanRoy/spring-data-jest/tree/master/spring-boot-sample-data-jest](https://github.com/VanRoy/spring-data-jest/tree/master/spring-boot-sample-data-jest)
+
+Sample with Spring Boot and Elasticsearch on AWS (managed) :
+
+[https://github.com/VanRoy/spring-data-jest/tree/master/spring-boot-sample-data-jest-aws](https://github.com/VanRoy/spring-data-jest/tree/master/spring-boot-sample-data-jest-aws)

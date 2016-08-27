@@ -175,6 +175,7 @@
 				<module>spring-data-jest</module>
 				<module>spring-boot-starter-data-jest</module>
 				<module>spring-boot-sample-data-jest</module>
+				<module>spring-boot-sample-data-jest-aws</module>
 			</modules>
 		</profile>
 		<profile>
