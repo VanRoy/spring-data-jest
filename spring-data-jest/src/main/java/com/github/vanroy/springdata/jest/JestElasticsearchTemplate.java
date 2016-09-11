@@ -1021,7 +1021,13 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 			T result = client.execute(action);
 			if (!result.isSucceeded()) {
-				logger.error("Cannot execute jest action , response code : {} , error : {} , message : {}", result.getResponseCode(), result.getErrorMessage(), getMessage(result));
+
+				String errorMessage = String.format("Cannot execute jest action , response code : %s , error : %s , message : %s", result.getResponseCode(), result.getErrorMessage(), getMessage(result));
+				logger.error(errorMessage);
+
+				if(!isSuccessfulResponse(result.getResponseCode())) {
+					throw new ElasticsearchException(errorMessage);
+				}
 			}
 
 			return result;
@@ -1032,16 +1038,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	private boolean executeWithAcknowledge(Action<?> action) {
-		try {
-			JestResult jestResult = client.execute(action);
-			if (!jestResult.isSucceeded()) {
-				logger.error("Cannot execute jest action , response code : {} , error : {} , message : {}", jestResult.getResponseCode(), jestResult.getErrorMessage(), getMessage(jestResult));
-			}
-
-			return jestResult.isSucceeded();
-		} catch (IOException e) {
-			throw new ElasticsearchException("failed to execute action", e);
-		}
+		return execute(action).isSucceeded();
 	}
 
 	private <T> SearchSourceBuilder prepareSearch(Query query, Class<T> clazz) {
@@ -1329,5 +1326,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			}
 		}
 		return ids;
+	}
+
+	private static boolean isSuccessfulResponse(int statusCode) {
+		return statusCode < 300 || statusCode == 404;
 	}
 }
