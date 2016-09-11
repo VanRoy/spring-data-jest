@@ -17,7 +17,6 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration;
 import org.springframework.cloud.aws.core.region.RegionProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +30,7 @@ import vc.inreach.aws.request.AWSSigningRequestInterceptor;
  */
 @Configuration
 @ConditionalOnClass(AWSSigner.class)
-@AutoConfigureAfter(ContextRegionProviderAutoConfiguration.class)
+@AutoConfigureAfter(name = "org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration")
 public class ElasticsearchJestAWSAutoConfiguration {
 
 	private static final String AWS_SERVICE = "es";
