@@ -1627,6 +1627,31 @@ public class JestElasticsearchTemplateTests {
 		assertThat(sampleEntities.getTotalElements(), greaterThanOrEqualTo(1L));
 	}
 
+	@Test
+	public void shouldIndexVersionnedEntity() {
+		// given
+		String documentId = randomNumeric(5);
+		BasicEntity entity = new BasicEntity(documentId, "test");
+
+		IndexQuery indexQuery = new IndexQueryBuilder().withId(documentId)
+				.withIndexName(INDEX_NAME).withType(TYPE_NAME)
+				.withVersion(entity.getVersion())
+				.withObject(entity).build();
+
+		elasticsearchTemplate.index(indexQuery);
+		elasticsearchTemplate.refresh(INDEX_NAME);
+
+		SearchQuery searchQuery = new NativeSearchQueryBuilder().withIndices(INDEX_NAME)
+				.withTypes(TYPE_NAME).withQuery(matchAllQuery()).build();
+		// when
+		Page<BasicEntity> entities = elasticsearchTemplate.queryForPage(searchQuery, BasicEntity.class);
+		// then
+		assertThat(entities, is(notNullValue()));
+		assertThat(entities.getTotalElements(), greaterThanOrEqualTo(1L));
+		assertThat(entities.getContent().get(0).getFirstName(), equalTo(entity.getFirstName()));
+		assertThat(entities.getContent().get(0).getVersion(), equalTo(entity.getVersion()));
+	}
+
 	/*
 	DATAES-106
 	 */

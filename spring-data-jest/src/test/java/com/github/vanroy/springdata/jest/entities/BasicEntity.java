@@ -15,12 +15,15 @@
  */
 package com.github.vanroy.springdata.jest.entities;
 
+import lombok.*;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * @author Julien Roy
  */
+@Data
+@NoArgsConstructor
 public class BasicEntity {
 
 	private String id;
@@ -31,46 +34,5 @@ public class BasicEntity {
 		this.id = id;
 		this.firstName = firstName;
 		this.version = System.currentTimeMillis();
-	}
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getFirstName() {
-		return firstName;
-	}
-
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public Long getVersion() {
-		return version;
-	}
-
-	public void setVersion(Long version) {
-		this.version = version;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof SampleEntity)) {
-			return false;
-		}
-		if (this == obj) {
-			return true;
-		}
-		BasicEntity rhs = (BasicEntity) obj;
-		return new EqualsBuilder().append(this.id, rhs.id).append(this.firstName, rhs.firstName).append(this.version, rhs.version).isEquals();
-	}
-
-	@Override
-	public int hashCode() {
-		return new HashCodeBuilder().append(id).append(firstName).append(version).toHashCode();
 	}
 }

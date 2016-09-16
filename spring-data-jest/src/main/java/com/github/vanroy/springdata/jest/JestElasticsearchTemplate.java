@@ -1159,7 +1159,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			}
 			if (query.getVersion() != null) {
 				indexBuilder.setParameter(Parameters.VERSION, query.getVersion());
-				indexBuilder.setParameter(Parameters.VERSION_TYPE, EXTERNAL);
+				indexBuilder.setParameter(Parameters.VERSION_TYPE, EXTERNAL.name().toLowerCase());
 			}
 
 			if (query.getParentId() != null) {

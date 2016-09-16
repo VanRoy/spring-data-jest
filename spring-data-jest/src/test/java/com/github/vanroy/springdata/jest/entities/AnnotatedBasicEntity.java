@@ -15,6 +15,7 @@
  */
 package com.github.vanroy.springdata.jest.entities;
 
+import lombok.Data;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -22,6 +23,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 /**
  * @author Julien Roy
  */
+@Data
 @Document(indexName = "test-index", type = "test-type", shards = 1, replicas = 0, refreshInterval = "-1")
 public class AnnotatedBasicEntity {
 
@@ -29,47 +31,4 @@ public class AnnotatedBasicEntity {
 	private String firstName;
 	private Long version;
 
-	public AnnotatedBasicEntity() {
-	}
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getFirstName() {
-		return firstName;
-	}
-
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-
-	public Long getVersion() {
-		return version;
-	}
-
-	public void setVersion(Long version) {
-		this.version = version;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof SampleEntity)) {
-			return false;
-		}
-		if (this == obj) {
-			return true;
-		}
-		AnnotatedBasicEntity rhs = (AnnotatedBasicEntity) obj;
-		return new EqualsBuilder().append(this.id, rhs.id).append(this.firstName, rhs.firstName).append(this.version, rhs.version).isEquals();
-	}
-
-	@Override
-	public int hashCode() {
-		return new HashCodeBuilder().append(id).append(firstName).append(version).toHashCode();
-	}
 }
