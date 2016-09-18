@@ -1023,9 +1023,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			if (!result.isSucceeded()) {
 
 				String errorMessage = String.format("Cannot execute jest action , response code : %s , error : %s , message : %s", result.getResponseCode(), result.getErrorMessage(), getMessage(result));
-				logger.error(errorMessage);
 
-				if(!isSuccessfulResponse(result.getResponseCode())) {
+				if(isSuccessfulResponse(result.getResponseCode())) {
+					logger.debug(errorMessage);
+				} else {
+					logger.error(errorMessage);
 					throw new ElasticsearchException(errorMessage);
 				}
 			}
