@@ -447,7 +447,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	public <T> Page<T> queryForPage(StringQuery query, Class<T> clazz, JestSearchResultMapper mapper) {
-		SearchResult response = executeSearch(null, prepareSearch(query, clazz).query(query.getSource()));
+		SearchResult response = executeSearch(query, prepareSearch(query, clazz).query(query.getSource()));
 		return mapper.mapResults(response, clazz, query.getPageable());
 	}
 
