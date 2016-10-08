@@ -1,39 +1,41 @@
 package com.github.vanroy.springdata.jest.mapper;
 
-import static org.apache.commons.lang.StringUtils.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
+import com.github.vanroy.springdata.jest.aggregation.impl.AggregatedPageImpl;
+import com.github.vanroy.springdata.jest.facet.FacetResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
+import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import com.google.gson.JsonObject;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.DocumentResult;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
+import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.ScriptedField;
-import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import org.springframework.data.elasticsearch.core.DefaultEntityMapper;
 import org.springframework.data.elasticsearch.core.EntityMapper;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
-import org.springframework.data.elasticsearch.core.query.SearchQuery;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.util.StringUtils;
+
+import static org.apache.commons.lang.StringUtils.*;
 
 /**
  * Jest implementation of Spring Data Elasticsearch results mapper.
@@ -77,7 +79,7 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 
 	public <T> LinkedList<T> mapResults(MultiDocumentResult multiResponse, Class<T> clazz) {
 
-		LinkedList<T> results = new LinkedList<T>();
+		LinkedList<T> results = new LinkedList<>();
 
 		for (MultiDocumentResult.MultiDocumentResultItem item : multiResponse.getItems()) {
 			T result = mapEntity(item.getSource(), clazz);
@@ -90,7 +92,7 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 
 	public <T> Page<T> mapResults(SearchScrollResult response, Class<T> clazz) {
 
-		LinkedList<T> results = new LinkedList<T>();
+		LinkedList<T> results = new LinkedList<>();
 
 		for (SearchScrollResult.Hit<JsonObject, Void> hit : response.getHits(JsonObject.class)) {
 			if (hit != null) {
@@ -98,12 +100,16 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			}
 		}
 
-		return new PageImpl<T>(results, null, response.getTotal());
+		return new PageImpl<>(results, null, response.getTotal());
 	}
 
-	public <T> Page<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+		return mapResults(response, clazz, pageable, null);
+	}
 
-		LinkedList<T> results = new LinkedList<T>();
+	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable, List<AbstractAggregationBuilder> aggregations) {
+
+		LinkedList<T> results = new LinkedList<>();
 
 		for (SearchResult.Hit<JsonObject, Void> hit : response.getHits(JsonObject.class)) {
 			if (hit != null) {
@@ -111,7 +117,9 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			}
 		}
 
-		return new PageImpl<T>(results, pageable, response.getTotal());
+		List<FacetResult> facets = AggregationResultTransformer.parseAggregations(aggregations, response.getAggregations());
+
+		return new AggregatedPageImpl<>(results, pageable, response.getTotal(), response.getAggregations(), facets);
 	}
 
 	private <T> T mapSource(JsonObject source, Class<T> clazz) {

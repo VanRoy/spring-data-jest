@@ -18,6 +18,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
 import com.github.vanroy.springdata.jest.internal.ExtendedSearchResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
@@ -411,18 +412,18 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	@Override
-	public <T> Page<T> queryForPage(SearchQuery query, Class<T> clazz) {
+	public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz) {
 		return queryForPage(query, clazz, resultsMapper);
 	}
 
 	@Override
-	public <T> Page<T> queryForPage(SearchQuery query, Class<T> clazz, SearchResultMapper mapper) {
+	public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz, SearchResultMapper mapper) {
 		throw new UnsupportedOperationException();
 	}
 
-	public <T> Page<T> queryForPage(SearchQuery query, Class<T> clazz, JestSearchResultMapper mapper) {
+	public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz, JestSearchResultMapper mapper) {
 		SearchResult response = doSearch(prepareSearch(query, clazz), query);
-		return mapper.mapResults(response, clazz, query.getPageable());
+		return mapper.mapResults(response, clazz, query.getPageable(), query.getAggregations());
 	}
 
 	@Override

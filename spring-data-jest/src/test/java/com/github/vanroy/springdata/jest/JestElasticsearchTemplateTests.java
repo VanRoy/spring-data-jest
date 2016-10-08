@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
+import com.github.vanroy.springdata.jest.aggregation.impl.AggregatedPageImpl;
 import com.github.vanroy.springdata.jest.entities.AnnotatedBasicEntity;
 import com.github.vanroy.springdata.jest.entities.BasicEntity;
 import com.github.vanroy.springdata.jest.entities.HetroEntity1;
@@ -48,6 +50,7 @@ import org.elasticsearch.index.engine.DocumentMissingException;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptService;
+import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -702,14 +705,19 @@ public class JestElasticsearchTemplateTests {
 		SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(matchAllQuery()).withIndices(INDEX_NAME)
 				.withTypes(TYPE_NAME).withFields("message").build();
 		// when
-		Page<String> page = elasticsearchTemplate.queryForPage(searchQuery, String.class, new JestSearchResultMapper() {
+		AggregatedPage<String> page = elasticsearchTemplate.queryForPage(searchQuery, String.class, new JestSearchResultMapper() {
 			@Override
-			public <T> Page<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
 				List<String> values = new ArrayList<String>();
 				for (JsonElement hit : response.getJsonObject().get("hits").getAsJsonObject().get("hits").getAsJsonArray()) {
 					values.add(hit.getAsJsonObject().get("fields").getAsJsonObject().get("message").getAsString());
 				}
-				return new PageImpl<T>((List<T>) values);
+				return new AggregatedPageImpl<T>((List<T>) values);
+			}
+
+			@Override
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable, List<AbstractAggregationBuilder> aggregations) {
+				return mapResults(response, clazz, pageable);
 			}
 		});
 		// then
@@ -1354,9 +1362,9 @@ public class JestElasticsearchTemplateTests {
 				.withHighlightFields(new HighlightBuilder.Field("message"))
 				.build();
 
-		Page<SampleEntity> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class, new JestSearchResultMapper() {
+		AggregatedPage<SampleEntity> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class, new JestSearchResultMapper() {
 			@Override
-			public <T> Page<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
 				List<SampleEntity> chunk = new ArrayList<SampleEntity>();
 				for (SearchResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
 					if (response.getHits(JsonObject.class).size() <= 0) {
@@ -1369,9 +1377,13 @@ public class JestElasticsearchTemplateTests {
 					chunk.add(user);
 				}
 				if (chunk.size() > 0) {
-					return new PageImpl<T>((List<T>) chunk);
+					return new AggregatedPageImpl<T>((List<T>) chunk);
 				}
 				return null;
+			}
+			@Override
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable, List<AbstractAggregationBuilder> aggregations) {
+				return mapResults(response, clazz, pageable);
 			}
 		});
 
@@ -1444,9 +1456,9 @@ public class JestElasticsearchTemplateTests {
 				.withTypes(TYPE_NAME)
 				.build();
 		// then
-		Page<SampleEntity> page = elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class, new JestSearchResultMapper() {
+		AggregatedPage<SampleEntity> page = elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class, new JestSearchResultMapper() {
 			@Override
-			public <T> Page<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
 				List<SampleEntity> values = new ArrayList<SampleEntity>();
 				for (SearchResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
 					SampleEntity sampleEntity = new SampleEntity();
@@ -1454,7 +1466,11 @@ public class JestElasticsearchTemplateTests {
 					sampleEntity.setMessage(searchHit.source.get("message").getAsString());
 					values.add(sampleEntity);
 				}
-				return new PageImpl<T>((List<T>) values);
+				return new AggregatedPageImpl<T>((List<T>) values);
+			}
+			@Override
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable, List<AbstractAggregationBuilder> aggregations) {
+				return mapResults(response, clazz, pageable);
 			}
 		});
 		assertThat(page, is(notNullValue()));
@@ -1614,9 +1630,9 @@ public class JestElasticsearchTemplateTests {
 		// then
 		SearchQuery searchQuery = new NativeSearchQueryBuilder().withIndices(INDEX_NAME)
 				.withTypes(TYPE_NAME).withQuery(matchAllQuery()).build();
-		Page<Map> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, Map.class, new JestSearchResultMapper() {
+		AggregatedPage<Map> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, Map.class, new JestSearchResultMapper() {
 			@Override
-			public <T> Page<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
 				List<Map> chunk = new ArrayList<>();
 				for (SearchResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
 					if (response.getHits(JsonObject.class).size() <= 0) {
@@ -1631,9 +1647,13 @@ public class JestElasticsearchTemplateTests {
 					chunk.add(person);
 				}
 				if (chunk.size() > 0) {
-					return new PageImpl<T>((List<T>) chunk);
+					return new AggregatedPageImpl<T>((List<T>) chunk);
 				}
 				return null;
+			}
+			@Override
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable, List<AbstractAggregationBuilder> aggregations) {
+				return mapResults(response, clazz, pageable);
 			}
 		});
 		assertThat(sampleEntities.getTotalElements(), is(equalTo(2L)));
@@ -2153,9 +2173,9 @@ public class JestElasticsearchTemplateTests {
 		// When
 
 		SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(matchAllQuery()).withTypes("hetro").withIndices(INDEX_1_NAME, INDEX_2_NAME).build();
-		Page<ResultAggregator> page = elasticsearchTemplate.queryForPage(searchQuery, ResultAggregator.class, new JestSearchResultMapper() {
+		AggregatedPage<ResultAggregator> page = elasticsearchTemplate.queryForPage(searchQuery, ResultAggregator.class, new JestSearchResultMapper() {
 			@Override
-			public <T> Page<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
 				List<ResultAggregator> values = new ArrayList<>();
 				for (SearchResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
 					String id = String.valueOf(searchHit.source.get("id"));
@@ -2163,7 +2183,11 @@ public class JestElasticsearchTemplateTests {
 					String lastName = searchHit.source.get("lastName") != null ? searchHit.source.get("lastName").getAsString() : "";
 					values.add(new ResultAggregator(id, firstName, lastName));
 				}
-				return new PageImpl<>((List<T>) values);
+				return new AggregatedPageImpl<>((List<T>) values);
+			}
+			@Override
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable, List<AbstractAggregationBuilder> aggregations) {
+				return mapResults(response, clazz, pageable);
 			}
 		});
 
