@@ -5,7 +5,7 @@
 
 	<groupId>com.github.vanroy</groupId>
 	<artifactId>spring-data-jest-build</artifactId>
-	<version>2.1.2-SNAPSHOT</version>
+	<version>2.1.2.RELEASE</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data Jest Build</name>
