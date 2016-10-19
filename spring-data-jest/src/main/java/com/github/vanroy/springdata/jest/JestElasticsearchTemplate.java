@@ -1,27 +1,53 @@
 package com.github.vanroy.springdata.jest;
 
-import static com.github.vanroy.springdata.jest.MappingBuilder.buildMapping;
-import static org.apache.commons.lang.StringUtils.*;
-import static org.elasticsearch.index.VersionType.*;
-import static org.elasticsearch.index.query.QueryBuilders.moreLikeThisQuery;
-import static org.springframework.util.CollectionUtils.isEmpty;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.vanroy.springdata.jest.internal.ExtendedSearchResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
-import com.github.vanroy.springdata.jest.mapper.*;
+import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
+import com.github.vanroy.springdata.jest.mapper.DefaultJestResultsMapper;
+import com.github.vanroy.springdata.jest.mapper.JestGetResultMapper;
+import com.github.vanroy.springdata.jest.mapper.JestMultiGetResultMapper;
+import com.github.vanroy.springdata.jest.mapper.JestResultsExtractor;
+import com.github.vanroy.springdata.jest.mapper.JestResultsMapper;
+import com.github.vanroy.springdata.jest.mapper.JestScrollResultMapper;
+import com.github.vanroy.springdata.jest.mapper.JestSearchResultMapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import io.searchbox.action.Action;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
-import io.searchbox.core.*;
+import io.searchbox.core.Bulk;
+import io.searchbox.core.BulkResult;
+import io.searchbox.core.ClearScroll;
+import io.searchbox.core.Count;
+import io.searchbox.core.CountResult;
+import io.searchbox.core.Delete;
+import io.searchbox.core.DocumentResult;
+import io.searchbox.core.Get;
+import io.searchbox.core.Index;
+import io.searchbox.core.MultiGet;
+import io.searchbox.core.Search;
+import io.searchbox.core.SearchResult;
+import io.searchbox.core.SearchScroll;
+import io.searchbox.core.Update;
 import io.searchbox.indices.CreateIndex;
 import io.searchbox.indices.DeleteIndex;
 import io.searchbox.indices.IndicesExists;
@@ -53,27 +79,50 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Mapping;
 import org.springframework.data.elasticsearch.annotations.Setting;
-import org.springframework.data.elasticsearch.core.*;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.GetResultMapper;
+import org.springframework.data.elasticsearch.core.MultiGetResultMapper;
+import org.springframework.data.elasticsearch.core.ResultsExtractor;
+import org.springframework.data.elasticsearch.core.SearchResultMapper;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
-import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
-import org.springframework.data.elasticsearch.core.query.*;
+import org.springframework.data.elasticsearch.core.query.AliasQuery;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
+import org.springframework.data.elasticsearch.core.query.GetQuery;
+import org.springframework.data.elasticsearch.core.query.IndexBoost;
+import org.springframework.data.elasticsearch.core.query.IndexQuery;
+import org.springframework.data.elasticsearch.core.query.MoreLikeThisQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.Query;
+import org.springframework.data.elasticsearch.core.query.ScriptField;
+import org.springframework.data.elasticsearch.core.query.SearchQuery;
+import org.springframework.data.elasticsearch.core.query.SourceFilter;
+import org.springframework.data.elasticsearch.core.query.StringQuery;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
+
+import static com.github.vanroy.springdata.jest.MappingBuilder.*;
+import static org.apache.commons.lang.StringUtils.*;
+import static org.elasticsearch.index.VersionType.*;
+import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Jest implementation of ElasticsearchOperations.
@@ -1008,6 +1057,21 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			aliases.add(AliasMetaData.newAliasMetaDataBuilder(entry.getKey()).build());
 		}
 		return aliases;
+	}
+
+	public Set<String> getIndicesFromAlias(String aliasName) {
+		JestResult result = execute(new GetAliases.Builder().addIndex(aliasName).build());
+		if (!result.isSucceeded()) {
+			return Collections.emptySet();
+		}
+
+
+		Set<Map.Entry<String, JsonElement>> entries = result.getJsonObject().entrySet();
+		Set<String> indices = new HashSet<>(entries.size());
+		for (Map.Entry<String, JsonElement> entry : entries) {
+			indices.add(entry.getKey());
+		}
+		return indices;
 	}
 
 	public ElasticsearchPersistentEntity getPersistentEntityFor(Class clazz) {
