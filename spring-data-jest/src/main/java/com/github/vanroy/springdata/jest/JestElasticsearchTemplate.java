@@ -1066,6 +1066,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			searchSourceBuilder.fields(query.getFields());
 		}
 
+		if (query.getSourceFilter() != null) {
+			SourceFilter sourceFilter = query.getSourceFilter();
+			searchSourceBuilder.fetchSource(sourceFilter.getIncludes(), sourceFilter.getExcludes());
+		}
+
 		if (query.getSort() != null) {
 			for (Sort.Order order : query.getSort()) {
 				searchSourceBuilder.sort(order.getProperty(), order.getDirection() == Sort.Direction.DESC ? SortOrder.DESC : SortOrder.ASC);
