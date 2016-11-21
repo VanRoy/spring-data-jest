@@ -693,6 +693,9 @@ public class JestElasticsearchTemplateTests {
 		String documentId = randomNumeric(5);
 		String message = "some test message";
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message(message)
+				.type("type1")
+				.rate(11)
+				.available(true)
 				.version(System.currentTimeMillis()).build();
 
 		IndexQuery indexQuery = getIndexQuery(sampleEntity);
@@ -701,7 +704,7 @@ public class JestElasticsearchTemplateTests {
 		elasticsearchTemplate.refresh(SampleEntity.class);
 
 		FetchSourceFilterBuilder sourceFilter = new FetchSourceFilterBuilder();
-		sourceFilter.withIncludes("message");
+		sourceFilter.withIncludes("message", "available", "rate").withExcludes("r*");
 
 		SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(matchAllQuery()).withIndices(INDEX_NAME)
 				.withTypes(TYPE_NAME).withSourceFilter(sourceFilter.build()).build();
@@ -711,6 +714,10 @@ public class JestElasticsearchTemplateTests {
 		assertThat(page, is(notNullValue()));
 		assertThat(page.getTotalElements(), is(equalTo(1L)));
 		assertThat(page.getContent().get(0).getMessage(), is(message));
+		assertThat(page.getContent().get(0).getVersion(), is(nullValue()));
+		assertThat(page.getContent().get(0).getType(), is(nullValue()));
+		assertThat(page.getContent().get(0).getRate(), is(equalTo(0)));
+		assertThat(page.getContent().get(0).isAvailable(), is(equalTo(true)));
 	}
 
 
