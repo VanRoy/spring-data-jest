@@ -20,6 +20,8 @@ public class ElasticsearchJestProperties {
 	private int readTimeout = 5000;
 	private Boolean multiThreaded = true;
 
+	private String internalNodeVersion;
+
 	public String getUri() {
 		return uri;
 	}
@@ -82,5 +84,13 @@ public class ElasticsearchJestProperties {
 
 	public void setAwsRegion(String awsRegion) {
 		this.awsRegion = awsRegion;
+	}
+
+	public String getInternalNodeVersion() {
+		return internalNodeVersion;
+	}
+
+	public void setInternalNodeVersion(String internalNodeVersion) {
+		this.internalNodeVersion = internalNodeVersion;
 	}
 }
