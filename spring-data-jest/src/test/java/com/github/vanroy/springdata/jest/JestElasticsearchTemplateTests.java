@@ -15,16 +15,23 @@
  */
 package com.github.vanroy.springdata.jest;
 
-import static com.github.vanroy.springdata.jest.utils.IndexBuilder.buildIndex;
-import static org.apache.commons.lang.RandomStringUtils.*;
-import static org.elasticsearch.index.query.QueryBuilders.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.github.vanroy.springdata.jest.entities.*;
+import com.github.vanroy.springdata.jest.entities.AnnotatedBasicEntity;
+import com.github.vanroy.springdata.jest.entities.BasicEntity;
+import com.github.vanroy.springdata.jest.entities.HetroEntity1;
+import com.github.vanroy.springdata.jest.entities.HetroEntity2;
+import com.github.vanroy.springdata.jest.entities.SampleEntity;
+import com.github.vanroy.springdata.jest.entities.SampleMappingEntity;
+import com.github.vanroy.springdata.jest.entities.UseServerConfigurationEntity;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import com.github.vanroy.springdata.jest.mapper.JestMultiGetResultMapper;
@@ -50,13 +57,37 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.core.query.*;
+import org.springframework.data.elasticsearch.core.query.AliasQuery;
+import org.springframework.data.elasticsearch.core.query.Criteria;
+import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
+import org.springframework.data.elasticsearch.core.query.FetchSourceFilterBuilder;
+import org.springframework.data.elasticsearch.core.query.GetQuery;
+import org.springframework.data.elasticsearch.core.query.IndexQuery;
+import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.MoreLikeThisQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.ScriptField;
+import org.springframework.data.elasticsearch.core.query.SearchQuery;
+import org.springframework.data.elasticsearch.core.query.StringQuery;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
+import org.springframework.data.elasticsearch.core.query.UpdateQueryBuilder;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static com.github.vanroy.springdata.jest.utils.IndexBuilder.*;
+import static org.apache.commons.lang.RandomStringUtils.*;
+import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Rizwan Idrees
@@ -2169,6 +2200,24 @@ public class JestElasticsearchTemplateTests {
 				"      emailAnalyzer:\n" +
 				"        type: custom\n" +
 				"        tokenizer: uax_url_email\n"));
+	}
+
+	@Test
+	public void shouldGetIndicesFromAlias() {
+
+		elasticsearchTemplate.createIndex("test_index_alias");
+
+		AliasQuery aliasQuery = new AliasQuery();
+		aliasQuery.setAliasName("test_alias");
+		aliasQuery.setIndexName("test_index_alias");
+
+		elasticsearchTemplate.addAlias(aliasQuery);
+
+		Set<String> indices = elasticsearchTemplate.getIndicesFromAlias("test_alias");
+
+		assertThat(indices.size(), is(1));
+		assertThat(indices.iterator().next(), is("test_index_alias"));
+
 	}
 
 	private IndexQuery getIndexQuery(SampleEntity sampleEntity) {
