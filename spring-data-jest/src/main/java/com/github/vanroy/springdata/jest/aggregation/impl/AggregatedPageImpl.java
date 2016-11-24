@@ -5,11 +5,11 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
-import com.github.vanroy.springdata.jest.facet.FacetResult;
 import com.github.vanroy.springdata.jest.facet.FacetedPageImpl;
 import io.searchbox.core.search.aggregation.Aggregation;
 import io.searchbox.core.search.aggregation.MetricAggregation;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.facet.FacetResult;
 
 /**
  * @author Petar Tahchiev

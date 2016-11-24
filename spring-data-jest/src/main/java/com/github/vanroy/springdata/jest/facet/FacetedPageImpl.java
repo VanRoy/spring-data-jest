@@ -7,9 +7,10 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.FacetedPage;
+import org.springframework.data.elasticsearch.core.facet.FacetResult;
 
 /**
  * Container for query result and facet results
@@ -20,7 +21,7 @@ import org.springframework.data.domain.Pageable;
  * @author Jonathan Yan
  */
 @Deprecated
-public abstract class FacetedPageImpl<T> extends PageImpl<T> implements FacetedPage<T>, AggregatedPage<T> {
+public abstract class FacetedPageImpl<T> extends PageImpl<T> implements FacetedPage<T> {
 
 
     private List<FacetResult> facets;

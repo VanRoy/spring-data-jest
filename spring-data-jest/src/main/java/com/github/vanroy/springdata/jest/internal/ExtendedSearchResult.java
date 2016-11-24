@@ -73,16 +73,16 @@ public class ExtendedSearchResult extends SearchResult {
 			}
 
 			hit = new Hit<>(
-				sourceType,
-				source,
-				explanationType,
-				explanation,
-				highlight,
-				sort,
-				index,
-				type,
-				id,
-				score
+					sourceType,
+					source,
+					explanationType,
+					explanation,
+					highlight,
+					sort,
+					index,
+					type,
+				    id,
+					score
 			);
 		}
 

@@ -3,8 +3,8 @@ package com.github.vanroy.springdata.jest.aggregation;
 import java.util.List;
 import java.util.Map;
 
-import com.github.vanroy.springdata.jest.facet.FacetedPage;
 import io.searchbox.core.search.aggregation.Aggregation;
+import org.springframework.data.elasticsearch.core.FacetedPage;
 
 /**
  * @author Petar Tahchiev

@@ -6,14 +6,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.github.vanroy.springdata.jest.facet.FacetResult;
-import com.github.vanroy.springdata.jest.facet.result.HistogramResult;
-import com.github.vanroy.springdata.jest.facet.result.IntervalUnit;
-import com.github.vanroy.springdata.jest.facet.result.Range;
-import com.github.vanroy.springdata.jest.facet.result.RangeResult;
-import com.github.vanroy.springdata.jest.facet.result.StatisticalResult;
-import com.github.vanroy.springdata.jest.facet.result.Term;
-import com.github.vanroy.springdata.jest.facet.result.TermResult;
 import io.searchbox.core.search.aggregation.ExtendedStatsAggregation;
 import io.searchbox.core.search.aggregation.HistogramAggregation;
 import io.searchbox.core.search.aggregation.MetricAggregation;
@@ -24,6 +16,14 @@ import org.elasticsearch.search.aggregations.bucket.histogram.HistogramBuilder;
 import org.elasticsearch.search.aggregations.bucket.range.RangeBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsBuilder;
 import org.elasticsearch.search.aggregations.metrics.stats.extended.ExtendedStatsBuilder;
+import org.springframework.data.elasticsearch.core.facet.FacetResult;
+import org.springframework.data.elasticsearch.core.facet.result.HistogramResult;
+import org.springframework.data.elasticsearch.core.facet.result.IntervalUnit;
+import org.springframework.data.elasticsearch.core.facet.result.Range;
+import org.springframework.data.elasticsearch.core.facet.result.RangeResult;
+import org.springframework.data.elasticsearch.core.facet.result.StatisticalResult;
+import org.springframework.data.elasticsearch.core.facet.result.Term;
+import org.springframework.data.elasticsearch.core.facet.result.TermResult;
 
 /**
  * Jest specific transformation from Jest Aggregation to SpringData facet.

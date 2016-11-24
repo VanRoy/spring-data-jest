@@ -70,6 +70,10 @@
                     <groupId>com.amazonaws</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-actuator</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
     </dependencies>

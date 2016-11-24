@@ -67,6 +67,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.core.query.AliasQuery;
 import org.springframework.data.elasticsearch.core.query.Criteria;
 import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
 import org.springframework.data.elasticsearch.core.query.DeleteQuery;
@@ -1235,7 +1236,6 @@ public class JestElasticsearchTemplateTests {
 		assertThat(mapping.get("properties").get("message").get("type"), is("string"));
 		assertThat(mapping.get("properties").get("message").get("index"), is("not_analyzed"));
 		assertThat(mapping.get("properties").get("message").get("store"), is(true));
-		assertThat(mapping.get("properties").get("message").get("analyzer"), is("standard"));
 	}
 
 	@Test
