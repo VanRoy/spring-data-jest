@@ -497,6 +497,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	public <T> Page<T> queryForPage(StringQuery query, Class<T> clazz, JestSearchResultMapper mapper) {
 		SearchResult response = executeSearch(query, prepareSearch(query, clazz).query(query.getSource()));
+		if (!response.isSucceeded()) {
+			throw new ElasticsearchException("couldn't query for page [message: " + response.getErrorMessage() + "]");
+		}
 		return mapper.mapResults(response, clazz, query.getPageable());
 	}
 
@@ -626,6 +629,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		}
 
 		CountResult result = execute(countRequestBuilder.build());
+		if (!result.isSucceeded()) {
+			throw new ElasticsearchException("couldn't count result of query [message: " + result.getErrorMessage() + "]");
+		}
 		return result.getCount().longValue();
 	}
 
