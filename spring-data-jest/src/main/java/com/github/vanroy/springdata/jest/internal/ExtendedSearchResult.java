@@ -6,6 +6,7 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.searchbox.cloning.CloneUtils;
 import io.searchbox.core.SearchResult;
 
 /**
@@ -34,7 +35,7 @@ public class ExtendedSearchResult extends SearchResult {
 		if (hitElement.isJsonObject()) {
 			JsonObject hitObject = hitElement.getAsJsonObject();
 
-			JsonElement id = hitObject.get("_id");
+			String id = hitObject.get("_id").getAsString();
 			String index = hitObject.get("_index").getAsString();
 			String type = hitObject.get("_type").getAsString();
 
@@ -48,21 +49,40 @@ public class ExtendedSearchResult extends SearchResult {
 			List<String> sort = extractSort(hitObject.getAsJsonArray(SORT_KEY));
 
 			JsonObject source = hitObject.getAsJsonObject(sourceKey);
+
 			if (source == null) {
 				source = new JsonObject();
 			}
 
-			if (id != null) source.add(ES_METADATA_ID, id);
-			hit = new Hit<T, K>(
-					sourceType,
-					source,
-					explanationType,
-					explanation,
-					highlight,
-					sort,
-					index,
-					type,
-					score
+			JsonObject clonedSource = null;
+
+			for (MetaField metaField : META_FIELDS) {
+				JsonElement metaElement = hitObject.get(metaField.esFieldName);
+
+				if (metaElement != null) {
+					if (clonedSource == null) {
+						clonedSource = (JsonObject) CloneUtils.deepClone(source);
+					}
+
+					clonedSource.add(metaField.internalFieldName, metaElement);
+				}
+			}
+
+			if(clonedSource != null) {
+				source = clonedSource;
+			}
+
+			hit = new Hit<>(
+				sourceType,
+				source,
+				explanationType,
+				explanation,
+				highlight,
+				sort,
+				index,
+				type,
+				id,
+				score
 			);
 		}
 

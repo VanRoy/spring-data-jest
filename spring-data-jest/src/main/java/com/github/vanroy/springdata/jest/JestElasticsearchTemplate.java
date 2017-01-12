@@ -1394,7 +1394,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		List<String> ids = new ArrayList<>();
 		for (SearchResult.Hit<JsonObject, Void> hit : result.getHits(JsonObject.class)) {
 			if (hit != null) {
-				ids.add(hit.source.get(JestResult.ES_METADATA_ID).toString());
+				ids.add(hit.id);
 			}
 		}
 		return ids;
