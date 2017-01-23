@@ -1,6 +1,6 @@
 package com.github.vanroy.springdata.jest.mapper;
 
-import static org.apache.commons.lang.StringUtils.*;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,21 +10,12 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
-import com.google.gson.JsonObject;
-import io.searchbox.client.JestResult;
-import io.searchbox.core.DocumentResult;
-import io.searchbox.core.SearchResult;
 import org.elasticsearch.search.SearchHitField;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
-import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import org.springframework.data.elasticsearch.core.DefaultEntityMapper;
 import org.springframework.data.elasticsearch.core.EntityMapper;
 import org.springframework.data.elasticsearch.core.FacetedPage;
@@ -35,6 +26,18 @@ import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersiste
 import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
+import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import io.searchbox.client.JestResult;
+import io.searchbox.core.DocumentResult;
+import io.searchbox.core.SearchResult;
 
 /**
  * Jest implementation of Spring Data Elasticsearch results mapper.
@@ -69,11 +72,16 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 	}
 
 	public <T> T mapResult(DocumentResult response, Class<T> clazz) {
-		T result = mapEntity(response.getJsonObject().get("_source").toString(), clazz);
-		if (result != null) {
-			setPersistentEntityId(result, response.getId(), clazz);
+		JsonElement sourceElement = response.getJsonObject().get("_source");
+		if ( sourceElement != null ) {
+			T result = mapEntity(sourceElement.toString(), clazz);
+			if (result != null) {
+				setPersistentEntityId(result, response.getId(), clazz);
+			}
+			return result;
 		}
-		return result;
+		
+		return null;
 	}
 
 	public <T> LinkedList<T> mapResults(MultiDocumentResult multiResponse, Class<T> clazz) {
