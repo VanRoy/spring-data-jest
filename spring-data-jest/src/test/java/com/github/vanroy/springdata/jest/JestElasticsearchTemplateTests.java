@@ -160,6 +160,17 @@ public class JestElasticsearchTemplateTests {
 	}
 
 	@Test
+	public void shouldReturnNullForInexistentId() {
+		// given
+		// when
+		GetQuery getQuery = new GetQuery();
+		getQuery.setId("1");
+		SampleEntity sampleEntity1 = elasticsearchTemplate.queryForObject(getQuery, SampleEntity.class);
+		// then
+		assertNull("entity must be null....", sampleEntity1);
+	}
+
+	@Test
 	public void shouldReturnObjectsForGivenIdsUsingMultiGet() {
 		// given
 		List<IndexQuery> indexQueries = new ArrayList<IndexQuery>();
