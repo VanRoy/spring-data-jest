@@ -90,8 +90,6 @@ import org.springframework.data.util.CloseableIterator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.github.vanroy.springdata.jest.JestElasticsearchTemplate.IndexRefreshBuilder;
-import com.github.vanroy.springdata.jest.JestElasticsearchTemplate.RefreshBuilder;
 import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
 import com.github.vanroy.springdata.jest.aggregation.impl.AggregatedPageImpl;
 import com.github.vanroy.springdata.jest.entities.AnnotatedBasicEntity;
