@@ -150,8 +150,6 @@ public class JestElasticsearchTemplateTests {
 		}
 		return indexQueries;
 	}
-	
-	@Rule
 
 	@Before
 	public void before() {
