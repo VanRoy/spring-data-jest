@@ -22,7 +22,7 @@ public class ElasticsearchJestDataAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public ElasticsearchOperations elasticsearchTemplate(JestClient client) {
-		return new JestElasticsearchTemplate(client, new DefaultJestResultsMapper());
+		return new JestElasticsearchTemplate(client);
 	}
 
 	@Bean

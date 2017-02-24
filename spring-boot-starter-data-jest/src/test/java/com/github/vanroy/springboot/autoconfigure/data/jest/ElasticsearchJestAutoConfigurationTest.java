@@ -1,12 +1,14 @@
 package com.github.vanroy.springboot.autoconfigure.data.jest;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 
 import com.github.vanroy.springboot.autoconfigure.data.jest.entities.Product;
 import com.github.vanroy.springboot.autoconfigure.data.jest.repositories.ProductRepository;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,11 +38,11 @@ public class ElasticsearchJestAutoConfigurationTest {
 		elasticsearchOperations.refresh(Product.class);
 
 		repository.save(Arrays.asList(
-				Product.builder().id("1").name("Sugar").text("Cane sugar").price(1.0f).available(false).build()
-				, Product.builder().id("2").name("Sugar").text("Cane sugar").price(1.2f).available(true).build()
-				, Product.builder().id("3").name("Sugar").text("Beet sugar").price(1.1f).available(true).build()
-				, Product.builder().id("4").name("Salt").text("Rock salt").price(1.9f).available(true).build()
-				, Product.builder().id("5").name("Salt").text("Sea salt").price(2.1f).available(false).build()));
+				Product.builder().name("Sugar").text("Cane sugar").price(1.0f).available(false).build()
+				, Product.builder().name("Sugar").text("Cane sugar").price(1.2f).available(true).build()
+				, Product.builder().name("Sugar").text("Beet sugar").price(1.1f).available(true).build()
+				, Product.builder().name("Salt").text("Rock salt").price(1.9f).available(true).build()
+				, Product.builder().name("Salt").text("Sea salt").price(2.1f).available(false).build()));
 
 		elasticsearchOperations.refresh(Product.class);
 	}
@@ -49,6 +51,11 @@ public class ElasticsearchJestAutoConfigurationTest {
 	public void should_repository_support_find() {
 		assertThat(repository.findByNameAndText("Sugar", "Cane sugar").size(), is(2));
 		assertThat(repository.findByNameAndPrice("Sugar", 1.1f).size(), is(1));
+	}
+
+	@Test
+	public void should_repository_find_all_populate_ids() {
+		assertThat(repository.findAll().iterator().next().getId(), notNullValue());
 	}
 
 	@SpringBootApplication(exclude = {
