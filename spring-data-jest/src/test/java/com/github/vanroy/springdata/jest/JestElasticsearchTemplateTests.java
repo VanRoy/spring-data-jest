@@ -281,6 +281,14 @@ public class JestElasticsearchTemplateTests {
 		assertThat(sampleEntities.size(), is(equalTo(2)));
 	}
 
+	@Test(expected = ElasticsearchException.class)
+	public void shouldThrowExceptionForInvalidSearchQuery() {
+		// given
+		SearchQuery searchQuery = new NativeSearchQueryBuilder().withIndices("inexisting_index").withQuery(matchAllQuery()).build();
+		// when
+		Page<SampleEntity> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class);
+	}
+
 	@Test
 	public void shouldReturnPageForGivenSearchQuery() {
 		// given
@@ -1105,11 +1113,11 @@ public class JestElasticsearchTemplateTests {
 		SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(matchAllQuery())
 				.withPageable(new PageRequest(0, 10)).build();
 
-		String scrollId = elasticsearchTemplate.scan(searchQuery, 1000, false, SampleEntity.class);
+		String scrollId = elasticsearchTemplate.scan(searchQuery, 30000L, false, SampleEntity.class);
 		List<SampleEntity> sampleEntities = new ArrayList<SampleEntity>();
 		boolean hasRecords = true;
 		while (hasRecords) {
-			Page<SampleEntity> page = elasticsearchTemplate.scroll(scrollId, 5000L, SampleEntity.class);
+			Page<SampleEntity> page = elasticsearchTemplate.scroll(scrollId, 30000L, SampleEntity.class);
 			if (page.hasContent()) {
 				sampleEntities.addAll(page.getContent());
 			} else {

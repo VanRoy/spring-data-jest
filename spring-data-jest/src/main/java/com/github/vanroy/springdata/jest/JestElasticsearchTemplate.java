@@ -206,8 +206,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	@Override
 	public boolean createIndex(String indexName) {
-		JestResult result = execute(new CreateIndex.Builder(indexName).build());
-		return result.isSucceeded();
+		return executeWithAcknowledge(new CreateIndex.Builder(indexName).build());
 	}
 
 	@Override
@@ -392,7 +391,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		Get.Builder build = new Get.Builder(index, query.getId()).type(persistentEntity.getIndexType());
 
-		DocumentResult result = execute(build.build());
+		DocumentResult result = execute(build.build(), true);
 
 		return mapper.mapResult(result, clazz);
 	}
@@ -750,7 +749,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	@Override
 	public String delete(String indexName, String type, String id) {
-		return execute(new Delete.Builder(id).index(indexName).type(type).build()).getId();
+		return execute(new Delete.Builder(id).index(indexName).type(type).build(), true).getId();
 	}
 
 	@Override
@@ -960,13 +959,13 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	@Override
 	public <T> void clearScroll(String scrollId) {
-		execute(new ClearScroll.Builder().addScrollId(scrollId).build());
+		execute(new ClearScroll.Builder().addScrollId(scrollId).build(), true);
 	}
 
 	public <T> Page<T> scroll(String scrollId, long scrollTimeInMillis, JestScrollResultMapper mapper) {
 		SearchScroll scroll = new SearchScroll.Builder(scrollId, scrollTimeInMillis + "ms").build();
 
-		SearchScrollResult response = new SearchScrollResult(execute(scroll));
+		SearchScrollResult response = new SearchScrollResult(execute(scroll, true));
 
 		return mapper.mapResults(response, null);
 	}
@@ -1082,6 +1081,10 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	private <T extends JestResult> T execute(Action<T> action) {
+		return execute(action, false);
+	}
+
+	private <T extends JestResult> T execute(Action<T> action, boolean acceptNotFound) {
 		try {
 
 			T result = client.execute(action);
@@ -1089,7 +1092,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 				String errorMessage = String.format("Cannot execute jest action , response code : %s , error : %s , message : %s", result.getResponseCode(), result.getErrorMessage(), getMessage(result));
 
-				if(isSuccessfulResponse(result.getResponseCode())) {
+				if(acceptNotFound && isSuccessfulResponse(result.getResponseCode())) {
 					logger.debug(errorMessage);
 				} else {
 					logger.error(errorMessage);
@@ -1105,7 +1108,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	private boolean executeWithAcknowledge(Action<?> action) {
-		return execute(action).isSucceeded();
+		return execute(action, true).isSucceeded();
 	}
 
 	private <T> SearchSourceBuilder prepareSearch(Query query, Class<T> clazz) {
