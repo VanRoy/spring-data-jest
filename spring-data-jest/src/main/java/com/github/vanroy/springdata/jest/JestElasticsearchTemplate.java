@@ -1095,7 +1095,6 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 				if(acceptNotFound && isSuccessfulResponse(result.getResponseCode())) {
 					logger.debug(errorMessage);
 				} else {
-					logger.error(errorMessage);
 					throw new ElasticsearchException(errorMessage);
 				}
 			}
