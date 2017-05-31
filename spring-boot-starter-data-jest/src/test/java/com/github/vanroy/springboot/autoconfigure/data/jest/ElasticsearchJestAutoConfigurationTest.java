@@ -8,7 +8,6 @@ import java.util.Arrays;
 
 import com.github.vanroy.springboot.autoconfigure.data.jest.entities.Product;
 import com.github.vanroy.springboot.autoconfigure.data.jest.repositories.ProductRepository;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +36,7 @@ public class ElasticsearchJestAutoConfigurationTest {
 		elasticsearchOperations.putMapping(Product.class);
 		elasticsearchOperations.refresh(Product.class);
 
-		repository.save(Arrays.asList(
+		repository.saveAll(Arrays.asList(
 				Product.builder().name("Sugar").text("Cane sugar").price(1.0f).available(false).build()
 				, Product.builder().name("Sugar").text("Cane sugar").price(1.2f).available(true).build()
 				, Product.builder().name("Sugar").text("Beet sugar").price(1.1f).available(true).build()

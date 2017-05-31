@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.github.vanroy.springdata.jest;
 
+import static org.elasticsearch.index.query.Operator.AND;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.springframework.data.elasticsearch.core.query.Criteria.*;
 
@@ -24,10 +25,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import org.apache.lucene.queryparser.flexible.core.util.StringUtils;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.BoostableQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.springframework.data.elasticsearch.core.query.Criteria;
 import org.springframework.util.Assert;
 
@@ -46,9 +44,9 @@ class CriteriaQueryProcessor {
 		if (criteria == null)
 			return null;
 
-		List<QueryBuilder> shouldQueryBuilderList = new LinkedList<QueryBuilder>();
-		List<QueryBuilder> mustNotQueryBuilderList = new LinkedList<QueryBuilder>();
-		List<QueryBuilder> mustQueryBuilderList = new LinkedList<QueryBuilder>();
+		List<QueryBuilder> shouldQueryBuilderList = new LinkedList<>();
+		List<QueryBuilder> mustNotQueryBuilderList = new LinkedList<>();
+		List<QueryBuilder> mustQueryBuilderList = new LinkedList<>();
 
 		ListIterator<Criteria> chainIterator = criteria.getCriteriaChain().listIterator();
 
@@ -111,12 +109,12 @@ class CriteriaQueryProcessor {
 		if (chainedCriteria.getQueryCriteriaEntries().isEmpty())
 			return null;
 
-		Iterator<CriteriaEntry> it = chainedCriteria.getQueryCriteriaEntries().iterator();
+		Iterator<Criteria.CriteriaEntry> it = chainedCriteria.getQueryCriteriaEntries().iterator();
 		boolean singeEntryCriteria = (chainedCriteria.getQueryCriteriaEntries().size() == 1);
 
 		String fieldName = chainedCriteria.getField().getName();
 		Assert.notNull(fieldName, "Unknown field");
-		QueryBuilder query = null;
+		QueryBuilder query;
 
 		if (singeEntryCriteria) {
 			Criteria.CriteriaEntry entry = it.next();
@@ -134,7 +132,8 @@ class CriteriaQueryProcessor {
 	}
 
 
-	private QueryBuilder processCriteriaEntry(Criteria.CriteriaEntry entry,/* OperationKey key, Object value,*/ String fieldName) {
+	@SuppressWarnings("unchecked")
+	private QueryBuilder processCriteriaEntry(Criteria.CriteriaEntry entry, String fieldName) {
 		Object value = entry.getValue();
 		if (value == null) {
 			return null;
@@ -144,11 +143,11 @@ class CriteriaQueryProcessor {
 
 		String searchText = StringUtils.toString(value);
 
-		Iterable<Object> collection = null;
+		Iterable<Object> collection;
 
 		switch (key) {
 			case EQUALS:
-				query = queryStringQuery(searchText).field(fieldName).defaultOperator(QueryStringQueryBuilder.Operator.AND);
+				query = queryStringQuery(searchText).field(fieldName).defaultOperator(AND);
 				break;
 			case CONTAINS:
 				query = queryStringQuery("*" + searchText + "*").field(fieldName).analyzeWildcard(true);
@@ -203,8 +202,6 @@ class CriteriaQueryProcessor {
 		if (Float.isNaN(boost)) {
 			return;
 		}
-		if (query instanceof BoostableQueryBuilder) {
-			((BoostableQueryBuilder) query).boost(boost);
-		}
+		query.boost(boost);
 	}
 }

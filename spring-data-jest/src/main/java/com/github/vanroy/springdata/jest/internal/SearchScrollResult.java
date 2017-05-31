@@ -6,8 +6,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.searchbox.client.JestResult;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import io.searchbox.cloning.CloneUtils;
+import io.searchbox.core.search.aggregation.MetricAggregation;
+import io.searchbox.core.search.aggregation.RootAggregation;
 
 /**
  * Search scroll result of elasticsearch action.
@@ -26,15 +27,38 @@ public class SearchScrollResult extends JestResult {
 		super(source);
 	}
 
+	public <T> Hit<T, Void> getFirstHit(Class<T> sourceType) {
+		return getFirstHit(sourceType, Void.class);
+	}
+
+	public <T, K> Hit<T, K> getFirstHit(Class<T> sourceType, Class<K> explanationType) {
+		Hit<T, K> hit = null;
+
+		List<Hit<T, K>> hits = getHits(sourceType, explanationType, true);
+		if (!hits.isEmpty()) {
+			hit = hits.get(0);
+       }
+
+		return hit;
+	}
+
 	public <T> List<Hit<T, Void>> getHits(Class<T> sourceType) {
-		return getHits(sourceType, Void.class);
+		return getHits(sourceType, true);
+	}
+
+	public <T> List<Hit<T, Void>> getHits(Class<T> sourceType, boolean addEsMetadataFields) {
+		return getHits(sourceType, Void.class, addEsMetadataFields);
 	}
 
 	public <T, K> List<Hit<T, K>> getHits(Class<T> sourceType, Class<K> explanationType) {
-		return getHits(sourceType, explanationType, false);
+		return getHits(sourceType, explanationType, false, true);
 	}
 
-	protected <T, K> List<Hit<T, K>> getHits(Class<T> sourceType, Class<K> explanationType, boolean returnSingle) {
+	public <T, K> List<Hit<T, K>> getHits(Class<T> sourceType, Class<K> explanationType, boolean addEsMetadataFields) {
+		return getHits(sourceType, explanationType, false, addEsMetadataFields);
+	}
+
+	protected <T, K> List<Hit<T, K>> getHits(Class<T> sourceType, Class<K> explanationType, boolean returnSingle, boolean addEsMetadataFields) {
 		List<Hit<T, K>> sourceList = new ArrayList<Hit<T, K>>();
 
 		if (jsonObject != null) {
@@ -47,10 +71,10 @@ public class SearchScrollResult extends JestResult {
 				}
 
 				if (obj.isJsonObject()) {
-					sourceList.add(extractHit(sourceType, explanationType, obj, sourceKey));
+					sourceList.add(extractHit(sourceType, explanationType, obj, sourceKey, addEsMetadataFields));
 				} else if (obj.isJsonArray()) {
 					for (JsonElement hitElement : obj.getAsJsonArray()) {
-						sourceList.add(extractHit(sourceType, explanationType, hitElement, sourceKey));
+						sourceList.add(extractHit(sourceType, explanationType, hitElement, sourceKey, addEsMetadataFields));
 						if (returnSingle) {
 							break;
 						}
@@ -62,7 +86,7 @@ public class SearchScrollResult extends JestResult {
 		return sourceList;
 	}
 
-	protected <T, K> Hit<T, K> extractHit(Class<T> sourceType, Class<K> explanationType, JsonElement hitElement, String sourceKey) {
+	protected <T, K> Hit<T, K> extractHit(Class<T> sourceType, Class<K> explanationType, JsonElement hitElement, String sourceKey, boolean addEsMetadataFields) {
 		Hit<T, K> hit = null;
 
 		if (hitElement.isJsonObject()) {
@@ -87,9 +111,22 @@ public class SearchScrollResult extends JestResult {
 				source = new JsonObject();
 			}
 
-			if (id != null) {
-				source.add(ES_METADATA_ID, id);
+			if (addEsMetadataFields) {
+				JsonObject clonedSource = null;
+				for (MetaField metaField : META_FIELDS) {
+					JsonElement metaElement = hitObject.get(metaField.esFieldName);
+					if (metaElement != null) {
+						if (clonedSource == null) {
+							clonedSource = (JsonObject) CloneUtils.deepClone(source);
+						}
+						clonedSource.add(metaField.internalFieldName, metaElement);
+					}
+				}
+				if (clonedSource != null) {
+					source = clonedSource;
+				}
 			}
+
 			hit = new Hit<T, K>(
 					sourceType,
 					source,
@@ -124,7 +161,7 @@ public class SearchScrollResult extends JestResult {
 
 		if (highlight != null) {
 			Set<Map.Entry<String, JsonElement>> highlightSet = highlight.entrySet();
-			retval = new HashMap<String, List<String>>(highlightSet.size());
+			retval = new HashMap<>(highlightSet.size());
 
 			for (Map.Entry<String, JsonElement> entry : highlightSet) {
 				List<String> fragments = new ArrayList<String>();
@@ -173,6 +210,15 @@ public class SearchScrollResult extends JestResult {
 		return jsonObject.get("_scroll_id").getAsString();
 	}
 
+	public MetricAggregation getAggregations() {
+		final String rootAggrgationName = "aggs";
+		if (jsonObject == null) return new RootAggregation(rootAggrgationName, new JsonObject());
+		if (jsonObject.has("aggregations"))
+			return new RootAggregation(rootAggrgationName, jsonObject.getAsJsonObject("aggregations"));
+		if (jsonObject.has("aggs")) return new RootAggregation(rootAggrgationName, jsonObject.getAsJsonObject("aggs"));
+
+		return new RootAggregation(rootAggrgationName, new JsonObject());
+	}
 
 	/**
 	 * Immutable class representing a search hit.
@@ -197,12 +243,16 @@ public class SearchScrollResult extends JestResult {
 		}
 
 		public Hit(Class<T> sourceType, JsonElement source, Class<K> explanationType, JsonElement explanation) {
-			this(sourceType, source, explanationType, explanation, null, null, null, null, null, null);
+			this(sourceType, source, explanationType, explanation, null, null, null);
 		}
 
 		public Hit(Class<T> sourceType, JsonElement source, Class<K> explanationType, JsonElement explanation,
-				   Map<String, List<String>> highlight, Map<String, List<String>> fields, List<String> sort,
-				   String index, String type, Double score) {
+				   Map<String, List<String>> highlight, Map<String, List<String>> fields, List<String> sort) {
+			this(sourceType, source, explanationType, explanation, highlight, fields, sort, null, null, null);
+		}
+
+		public Hit(Class<T> sourceType, JsonElement source, Class<K> explanationType, JsonElement explanation,
+				   Map<String, List<String>> highlight, Map<String, List<String>> fields, List<String> sort, String index, String type, Double score) {
 			if (source == null) {
 				this.source = null;
 			} else {
@@ -244,13 +294,13 @@ public class SearchScrollResult extends JestResult {
 
 		@Override
 		public int hashCode() {
-			return new HashCodeBuilder()
-					.append(source)
-					.append(explanation)
-					.append(highlight)
-					.append(fields)
-					.append(sort)
-					.toHashCode();
+			return Objects.hash(
+					source,
+					explanation,
+					highlight,
+					sort,
+					index,
+					type);
 		}
 
 		@Override
@@ -266,13 +316,12 @@ public class SearchScrollResult extends JestResult {
 			}
 
 			Hit rhs = (Hit) obj;
-			return new EqualsBuilder()
-					.append(source, rhs.source)
-					.append(explanation, rhs.explanation)
-					.append(highlight, rhs.highlight)
-					.append(fields, rhs.fields)
-					.append(sort, rhs.sort)
-					.isEquals();
+			return Objects.equals(source, rhs.source)
+					&& Objects.equals(explanation, rhs.explanation)
+					&& Objects.equals(highlight, rhs.highlight)
+					&& Objects.equals(sort, rhs.sort)
+					&& Objects.equals(index, rhs.index)
+					&& Objects.equals(type, rhs.type);
 		}
 	}
 

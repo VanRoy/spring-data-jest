@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.github.vanroy</groupId>
         <artifactId>spring-data-jest-build</artifactId>
-        <version>2.3.2.RELEASE</version>
+        <version>3.0.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -59,6 +59,12 @@
             <artifactId>aws-signing-request-interceptor</artifactId>
             <version>${awssigning}</version>
             <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.amazonaws</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
@@ -75,6 +81,12 @@
                     <artifactId>spring-boot-actuator</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-core</artifactId>
+            <version>${aws}</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 

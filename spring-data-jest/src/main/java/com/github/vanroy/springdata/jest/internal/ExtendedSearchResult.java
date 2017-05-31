@@ -25,11 +25,11 @@ public class ExtendedSearchResult extends SearchResult {
 	}
 
 	public String getScrollId() {
-		return getJsonObject().get("_scroll_id").getAsString();
+		return getJsonObject().has("_scroll_id") ? getJsonObject().get("_scroll_id").getAsString() : null;
 	}
 
 	@Override
-	protected <T, K> Hit<T, K> extractHit(Class<T> sourceType, Class<K> explanationType, JsonElement hitElement, String sourceKey) {
+	protected <T, K> Hit<T, K> extractHit(Class<T> sourceType, Class<K> explanationType, JsonElement hitElement, String sourceKey, boolean addEsMetadataFields) {
 		Hit<T, K> hit = null;
 
 		if (hitElement.isJsonObject()) {
@@ -54,22 +54,20 @@ public class ExtendedSearchResult extends SearchResult {
 				source = new JsonObject();
 			}
 
-			JsonObject clonedSource = null;
-
-			for (MetaField metaField : META_FIELDS) {
-				JsonElement metaElement = hitObject.get(metaField.esFieldName);
-
-				if (metaElement != null) {
-					if (clonedSource == null) {
-						clonedSource = (JsonObject) CloneUtils.deepClone(source);
+			if (addEsMetadataFields) {
+				JsonObject clonedSource = null;
+				for (MetaField metaField : META_FIELDS) {
+					JsonElement metaElement = hitObject.get(metaField.esFieldName);
+					if (metaElement != null) {
+						if (clonedSource == null) {
+							clonedSource = (JsonObject) CloneUtils.deepClone(source);
+						}
+						clonedSource.add(metaField.internalFieldName, metaElement);
 					}
-
-					clonedSource.add(metaField.internalFieldName, metaElement);
 				}
-			}
-
-			if(clonedSource != null) {
-				source = clonedSource;
+				if (clonedSource != null) {
+					source = clonedSource;
+				}
 			}
 
 			hit = new Hit<>(

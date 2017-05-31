@@ -1,5 +1,6 @@
 package com.github.vanroy.springboot.autoconfigure.data.jest;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -11,13 +12,12 @@ import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.elasticsearch.Version;
-import org.elasticsearch.common.lease.Releasable;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeBuilder;
-import org.elasticsearch.node.internal.InternalSettingsPreparer;
+import org.elasticsearch.node.NodeValidationException;
 import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.transport.Netty4Plugin;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,6 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StringUtils;
 
@@ -61,7 +60,7 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 	@Autowired(required = false)
 	private ObjectProvider<List<HttpClientConfigBuilderCustomizer>> builderCustomizers;
 
-	private Releasable releasable;
+	private Closeable node;
 
 	@Bean
 	@ConditionalOnMissingBean(JestClient.class)
@@ -73,7 +72,7 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 	@Bean
 	@ConditionalOnMissingBean(JestClient.class)
 	@ConditionalOnClass(Node.class)
-	public JestClient testClient() {
+	public JestClient testClient() throws NodeValidationException {
 
 		if (StringUtils.isEmpty(properties.getUri())) {
 			int httpPort = createInternalNode();
@@ -85,20 +84,15 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 
 	@Override
 	public void destroy() throws Exception {
-		if (this.releasable != null) {
+		if (this.node != null) {
 			try {
 				if (logger.isInfoEnabled()) {
 					logger.info("Closing Elasticsearch client");
 				}
-
-				try {
-					this.releasable.close();
-				} catch (NoSuchMethodError var2) {
-					ReflectionUtils.invokeMethod(ReflectionUtils.findMethod(Releasable.class, "release"), this.releasable);
-				}
-			} catch (Exception var3) {
+				this.node.close();
+			} catch (Exception ex) {
 				if (logger.isErrorEnabled()) {
-					logger.error("Error closing Elasticsearch client: ", var3);
+					logger.error("Error closing Elasticsearch client: ", ex);
 				}
 			}
 		}
@@ -137,35 +131,37 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 	 * Create internal Elasticsearch node.
 	 * @return HTTP port of node
 	 */
-	private int createInternalNode() {
+	private int createInternalNode() throws NodeValidationException {
 
 		if (logger.isInfoEnabled()) {
 			logger.info("Create test ES node");
 		}
 
 		int port = SocketUtils.findAvailableTcpPort();
+		String clusterName = INTERNAL_TEST_CLUSTER_NAME + UUID.randomUUID();
 
-		Settings.Builder settingsBuilder = Settings.settingsBuilder().
-				put("http.enabled", String.valueOf(true)).
-				put("http.port", String.valueOf(port));
+		Settings.Builder settingsBuilder = Settings.builder()
+				.put("cluster.name", clusterName)
+				.put("transport.type", "local")
+				.put("http.type", "netty4")
+				.put("http.port", String.valueOf(port));
 
 		if (this.esNodeproperties != null) {
 			settingsBuilder.put(this.esNodeproperties.getProperties());
 		}
 
-		String clusterName = INTERNAL_TEST_CLUSTER_NAME + UUID.randomUUID();
+		Collection<Class<? extends Plugin>> plugins = scanPlugins();
+		plugins.add(Netty4Plugin.class);
 
-		Settings settings = new NodeBuilder().settings(settingsBuilder).clusterName(clusterName).local(true).getSettings().build();
 
-		Version version = properties.getInternalNodeVersion() == null ? Version.CURRENT : Version.fromString(properties.getInternalNodeVersion());
 
-		this.releasable = new InternalNode(settings, version, scanPlugins()).start();
+		this.node = new InternalNode(settingsBuilder.build(), plugins).start();
 
 		return port;
 	}
 
 	/**
-	 * List all official ES plugins availble on ClassPath.
+	 * List all official ES plugins available on ClassPath.
 	 * @return List of plugins class
 	 */
 	@SuppressWarnings("unchecked")
@@ -187,19 +183,11 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 	}
 
 	/**
-	 * Specific InternalNode class used to specify plugins and version.
+	 * Specific InternalNode class used to specify plugins.
 	 */
 	private static class InternalNode extends Node {
-
-		private final Version version;
-
-		InternalNode(Settings settings, Version version, Collection<Class<? extends Plugin>> classpathPlugins) {
-			super(InternalSettingsPreparer.prepareEnvironment(settings, null), version, classpathPlugins);
-			this.version = version;
-		}
-
-		public Version getVersion() {
-			return this.version;
+		InternalNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins) {
+			super(InternalSettingsPreparer.prepareEnvironment(settings, null), classpathPlugins);
 		}
 	}
 }
