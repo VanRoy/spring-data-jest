@@ -1,38 +1,57 @@
 package com.github.vanroy.springdata.jest.aggregation.impl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
-import com.github.vanroy.springdata.jest.facet.FacetedPageImpl;
 import io.searchbox.core.search.aggregation.Aggregation;
 import io.searchbox.core.search.aggregation.MetricAggregation;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.facet.FacetResult;
 
 /**
  * @author Petar Tahchiev
  * @author Artur Konczak
  * @author Mohsin Husen
  */
-public class AggregatedPageImpl<T> extends FacetedPageImpl<T> implements AggregatedPage<T> {
+public class AggregatedPageImpl<T> extends PageImpl<T> implements AggregatedPage<T> {
 
 	private final MetricAggregation aggregations;
+	private String scrollId;
 
 	public AggregatedPageImpl(List<T> content) {
 		super(content);
 		this.aggregations = null;
 	}
 
-	public AggregatedPageImpl(List<T> content, Pageable pageable, long total) {
-		super(content, pageable, total);
+	public AggregatedPageImpl(List<T> content, String scrollId) {
+		super(content);
+		this.scrollId = scrollId;
 		this.aggregations = null;
 	}
 
-	public AggregatedPageImpl(List<T> content, Pageable pageable, long total, MetricAggregation aggregations, List<FacetResult> facets) {
-		super(content, pageable, total, facets);
+	public AggregatedPageImpl(List<T> content, long total) {
+		super(content, Pageable.unpaged(), total);
+		this.aggregations = null;
+	}
+
+	public AggregatedPageImpl(List<T> content, long total, String scrollId) {
+		super(content, Pageable.unpaged(), total);
+		this.scrollId = scrollId;
+		this.aggregations = null;
+	}
+
+	public AggregatedPageImpl(List<T> content, long total, MetricAggregation aggregations) {
+		super(content, Pageable.unpaged(), total);
 		this.aggregations = aggregations;
+	}
+
+	public AggregatedPageImpl(List<T> content, long total, MetricAggregation aggregations, String scrollId) {
+		super(content, Pageable.unpaged(), total);
+		this.aggregations = aggregations;
+		this.scrollId = scrollId;
 	}
 
 	@Override
@@ -42,12 +61,16 @@ public class AggregatedPageImpl<T> extends FacetedPageImpl<T> implements Aggrega
 
 	@Override
 	public List<? extends Aggregation> getAggregations(Map<String, Class> nameToTypeMap) {
-		return aggregations.getAggregations(nameToTypeMap);
+		return hasAggregations() ? aggregations.getAggregations(nameToTypeMap) : Collections.emptyList();
 	}
 
 	@Override
 	public <A extends Aggregation> A getAggregation(String aggName, Class<A> aggType) {
-		return aggregations.getAggregation(aggName, aggType);
+		return hasAggregations() ? aggregations.getAggregation(aggName, aggType) : null;
 	}
 
+	@Override
+	public String getScrollId() {
+		return scrollId;
+	}
 }

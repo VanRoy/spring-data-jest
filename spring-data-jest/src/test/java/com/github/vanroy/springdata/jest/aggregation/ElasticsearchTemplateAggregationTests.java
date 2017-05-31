@@ -83,12 +83,12 @@ public class ElasticsearchTemplateAggregationTests {
 		SearchQuery searchQuery = new NativeSearchQueryBuilder()
 				.withQuery(matchAllQuery())
 				.withSearchType(QUERY_THEN_FETCH)
-				.withPageable(new PageRequest(0, 1))
+				.withPageable(PageRequest.of(0, 1))
 				.withIndices("articles").withTypes("article")
 				.addAggregation(terms("subjects").field("subject"))
 				.build();
 		// when
-		AggregatedPage<Object> result = elasticsearchTemplate.queryForPage(searchQuery, Object.class);
+		AggregatedPage<ArticleEntity> result = elasticsearchTemplate.queryForPage(searchQuery, ArticleEntity.class);
 
 		// then
 		TermsAggregation subjectAgg = result.getAggregation("subjects", TermsAggregation.class);

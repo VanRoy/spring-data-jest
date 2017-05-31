@@ -11,12 +11,13 @@ Useful to use Spring Data with ElasticSearch cluster accessible only by HTTP ( f
 Versions
 -----------
 
-|   spring data jest | spring boot | spring data elasticsearch |  jest  | elasticsearch |
-|:------------------:|:-----------:|:-------------------------:|:------:|:-------------:|
-|   2.3.1.RELEASE    |    1.5.x    |       2.1.0.RELEASE       |  2.0.4 |      2.4.4    |
-|   2.2.0.RELEASE    |  >= 1.4.3   |       2.0.6.RELEASE       |  2.0.4 |      2.4.3    |
-|   2.1.4.RELEASE    |  < 1.4.3    |       2.0.5.RELEASE       |  2.0.3 |      2.2.0    |
-|   1.0.2.RELEASE    |    1.3.x    |       1.3.4.RELEASE       |  1.0.3 |      1.5.2    |
+|   spring data jest |      spring boot     | spring data elasticsearch |  jest  | elasticsearch |
+|:------------------:|:--------------------:|:-------------------------:|:------:|:-------------:|
+|   3.0.0-SNAPSHOT   | 2.0.0-BUILD-SNAPSHOT |   3.0.0-BUILD-SNAPSHOT    |  5.3.2 |      5.3.2    |
+|   2.3.1.RELEASE    |         1.5.x        |       2.1.0.RELEASE       |  2.0.4 |      2.4.4    |
+|   2.2.0.RELEASE    |       >= 1.4.3       |       2.0.6.RELEASE       |  2.0.4 |      2.4.3    |
+|   2.1.4.RELEASE    |        < 1.4.3       |       2.0.5.RELEASE       |  2.0.3 |      2.2.0    |
+|   1.0.2.RELEASE    |         1.3.x        |       1.3.4.RELEASE       |  1.0.3 |      1.5.2    |
 
 
 Quick Start with Spring Boot
@@ -30,7 +31,7 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-boot-starter-data-jest</artifactId>
-    <version>2.3.1.RELEASE</version>
+    <version>3.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -77,7 +78,7 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-data-jest</artifactId>
-    <version>2.3.1.RELEASE</version>
+    <version>3.0.0-SNAPSHOT</version>
 </dependency>
 ```
 

@@ -22,7 +22,7 @@ public class MultiDocumentResult extends JestResult {
 	 * @return empty list if Bulk action failed on HTTP level, otherwise all individual action items in the response
 	 */
 	public List<MultiDocumentResultItem> getItems() {
-		List<MultiDocumentResultItem> items = new LinkedList<MultiDocumentResultItem>();
+		List<MultiDocumentResultItem> items = new LinkedList<>();
 
 		if (jsonObject != null && jsonObject.has("docs")) {
 			for (JsonElement jsonElement : jsonObject.getAsJsonArray("docs")) {
