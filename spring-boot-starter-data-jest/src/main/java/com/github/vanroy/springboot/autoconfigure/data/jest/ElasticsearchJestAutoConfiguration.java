@@ -140,7 +140,7 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 
 		this.node = new InternalNode(settingsBuilder.build(), plugins).start();
 
-		return port;
+		return Integer.parseInt(settingsBuilder.get("http.port"));
 	}
 
 	/**
