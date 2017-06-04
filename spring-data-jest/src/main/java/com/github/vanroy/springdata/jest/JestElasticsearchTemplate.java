@@ -94,19 +94,33 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private final JestClient client;
 	private final ElasticsearchConverter elasticsearchConverter;
 	private final JestResultsMapper resultsMapper;
+	private final ErrorMapper errorMapper;
 
 	public JestElasticsearchTemplate(JestClient client) {
-		this(client, null, null);
+		this(client, null, null, null);
 	}
 
 	public JestElasticsearchTemplate(JestClient client, JestResultsMapper resultMapper) {
 		this(client, null, resultMapper);
 	}
 
+	public JestElasticsearchTemplate(JestClient client, JestResultsMapper resultMapper, ErrorMapper errorMapper) {
+		this(client, null, resultMapper, errorMapper);
+	}
+
+	public JestElasticsearchTemplate(JestClient client, ErrorMapper errorMapper) {
+		this(client, null, null, errorMapper);
+	}
+
 	public JestElasticsearchTemplate(JestClient client, ElasticsearchConverter elasticsearchConverter, JestResultsMapper resultsMapper) {
+		this(client, elasticsearchConverter, resultsMapper, null);
+	}
+
+	public JestElasticsearchTemplate(JestClient client, ElasticsearchConverter elasticsearchConverter, JestResultsMapper resultsMapper, ErrorMapper errorMapper) {
 		this.client = client;
 		this.elasticsearchConverter = (elasticsearchConverter == null) ? new MappingElasticsearchConverter(new SimpleElasticsearchMappingContext()) : elasticsearchConverter;
 		this.resultsMapper = (resultsMapper == null) ? new DefaultJestResultsMapper(this.elasticsearchConverter.getMappingContext()) : resultsMapper;
+		this.errorMapper = (errorMapper == null) ? new DefaultErrorMapper() : errorMapper;
 	}
 
 	public static String readFileFromClasspath(String url) {
@@ -1188,18 +1202,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private <T extends JestResult> T execute(Action<T> action, boolean acceptNotFound) {
 		try {
 
+			// Execute action
 			T result = client.execute(action);
-			if (!result.isSucceeded()) {
 
-				String errorMessage = String.format("Cannot execute jest action , response code : %s , error : %s , message : %s", result.getResponseCode(), result.getErrorMessage(), getMessage(result));
-
-				if(acceptNotFound && isSuccessfulResponse(result.getResponseCode())) {
-					logger.debug(errorMessage);
-				} else {
-					logger.error(errorMessage);
-					throw new ElasticsearchException(errorMessage);
-				}
-			}
+			// Check result and map error
+			errorMapper.mapError(action, result, acceptNotFound);
 
 			return result;
 
@@ -1435,18 +1442,6 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		return identifier.map(String::valueOf).orElse(null);
 	}
 
-
-	private <T extends JestResult> String getMessage(T result) {
-		if (result.getJsonObject() == null) {
-			return null;
-		}
-		JsonPrimitive message = result.getJsonObject().getAsJsonPrimitive("message");
-		if (message == null) {
-			return null;
-		}
-		return message.getAsString();
-	}
-
 	private static String[] toArray(List<String> values) {
 		String[] valuesAsArray = new String[values.size()];
 		return values.toArray(valuesAsArray);
@@ -1503,9 +1498,5 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			}
 		}
 		return ids;
-	}
-
-	private static boolean isSuccessfulResponse(int statusCode) {
-		return statusCode < 300 || statusCode == 404;
 	}
 }
