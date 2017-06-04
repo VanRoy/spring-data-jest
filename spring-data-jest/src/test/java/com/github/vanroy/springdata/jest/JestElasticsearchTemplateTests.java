@@ -18,6 +18,7 @@ package com.github.vanroy.springdata.jest;
 import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
 import com.github.vanroy.springdata.jest.aggregation.impl.AggregatedPageImpl;
 import com.github.vanroy.springdata.jest.entities.*;
+import com.github.vanroy.springdata.jest.exception.JestElasticsearchException;
 import com.github.vanroy.springdata.jest.internal.ExtendedSearchResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
@@ -269,12 +270,23 @@ public class JestElasticsearchTemplateTests {
 		assertThat(sampleEntities.size(), is(equalTo(2)));
 	}
 
-	@Test(expected = ElasticsearchException.class)
+	@Test
 	public void shouldThrowExceptionForInvalidSearchQuery() {
 		// given
 		SearchQuery searchQuery = new NativeSearchQueryBuilder().withIndices("inexisting_index").withQuery(matchAllQuery()).build();
 		// when
-		Page<SampleEntity> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class);
+		JestElasticsearchException ex = null;
+
+		try {
+			elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class);
+		} catch (JestElasticsearchException exception) {
+			ex = exception;
+		}
+
+		assertThat(ex, notNullValue());
+		assertThat(ex, is(instanceOf(JestElasticsearchException.class)));
+		assertThat(ex.getResult(), notNullValue());
+		assertThat(ex.getMessage(), startsWith("Cannot execute jest action , response code : 404 , error"));
 	}
 
 	@Test
