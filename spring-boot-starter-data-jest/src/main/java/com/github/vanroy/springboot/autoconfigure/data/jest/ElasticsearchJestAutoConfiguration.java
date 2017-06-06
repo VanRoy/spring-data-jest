@@ -1,6 +1,8 @@
 package com.github.vanroy.springboot.autoconfigure.data.jest;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
@@ -17,17 +19,20 @@ import org.elasticsearch.node.NodeBuilder;
 import org.elasticsearch.node.internal.InternalSettingsPreparer;
 import org.elasticsearch.plugins.Plugin;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchProperties;
+import org.springframework.boot.autoconfigure.elasticsearch.jest.HttpClientConfigBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.filter.AssignableTypeFilter;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StringUtils;
@@ -52,6 +57,9 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 
 	@Autowired(required = false)
 	private JestClientFactory jestClientFactory;
+
+	@Autowired(required = false)
+	private ObjectProvider<List<HttpClientConfigBuilderCustomizer>> builderCustomizers;
 
 	private Releasable releasable;
 
@@ -111,6 +119,13 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 
 		if (StringUtils.hasText(this.properties.getUsername())) {
 			builder.defaultCredentials(this.properties.getUsername(), this.properties.getPassword());
+		}
+
+		List<HttpClientConfigBuilderCustomizer> configBuilderCustomizers = builderCustomizers != null ? builderCustomizers.getIfAvailable() : new ArrayList<>();
+		if (!CollectionUtils.isEmpty(configBuilderCustomizers)) {
+			logger.info("Custom HttpClientConfigBuilderCustomizers detected. Applying these to the HttpClientConfig builder.");
+			configBuilderCustomizers.stream().forEach(customizer -> customizer.customize(builder));
+			logger.info("Custom HttpClientConfigBuilderCustomizers applied.");
 		}
 
 		JestClientFactory factory = jestClientFactory != null ? jestClientFactory : new JestClientFactory();
