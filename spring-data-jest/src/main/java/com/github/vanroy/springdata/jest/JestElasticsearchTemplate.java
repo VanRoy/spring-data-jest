@@ -858,13 +858,13 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	@Override
 	public void refresh(String indexName) {
-		execute(new Refresh.Builder().addIndex(indexName).refresh(true).build());
+		execute(new Refresh.Builder().addIndex(indexName).build());
 	}
 
 	@Override
 	public <T> void refresh(Class<T> clazz) {
 		ElasticsearchPersistentEntity persistentEntity = getPersistentEntityFor(clazz);
-		execute(new Refresh.Builder().addIndex(persistentEntity.getIndexName()).refresh(true).build());
+		execute(new Refresh.Builder().addIndex(persistentEntity.getIndexName()).build());
 	}
 
 	@Override

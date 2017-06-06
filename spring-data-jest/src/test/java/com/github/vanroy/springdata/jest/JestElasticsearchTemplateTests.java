@@ -15,6 +15,25 @@
  */
 package com.github.vanroy.springdata.jest;
 
+import static com.github.vanroy.springdata.jest.utils.IndexBuilder.buildIndex;
+import static org.apache.commons.lang.RandomStringUtils.randomNumeric;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wildcardQuery;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,24 +44,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
-import com.github.vanroy.springdata.jest.aggregation.impl.AggregatedPageImpl;
-import com.github.vanroy.springdata.jest.entities.AnnotatedBasicEntity;
-import com.github.vanroy.springdata.jest.entities.BasicEntity;
-import com.github.vanroy.springdata.jest.entities.HetroEntity1;
-import com.github.vanroy.springdata.jest.entities.HetroEntity2;
-import com.github.vanroy.springdata.jest.entities.SampleEntity;
-import com.github.vanroy.springdata.jest.entities.SampleMappingEntity;
-import com.github.vanroy.springdata.jest.entities.UseServerConfigurationEntity;
-import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
-import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
-import com.github.vanroy.springdata.jest.mapper.JestMultiGetResultMapper;
-import com.github.vanroy.springdata.jest.mapper.JestScrollResultMapper;
-import com.github.vanroy.springdata.jest.mapper.JestSearchResultMapper;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import io.searchbox.client.JestResult;
-import io.searchbox.core.SearchResult;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
@@ -57,8 +58,10 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -67,6 +70,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.query.AliasQuery;
 import org.springframework.data.elasticsearch.core.query.Criteria;
 import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
@@ -86,11 +90,28 @@ import org.springframework.data.util.CloseableIterator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static com.github.vanroy.springdata.jest.utils.IndexBuilder.*;
-import static org.apache.commons.lang.RandomStringUtils.*;
-import static org.elasticsearch.index.query.QueryBuilders.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
+import com.github.vanroy.springdata.jest.aggregation.impl.AggregatedPageImpl;
+import com.github.vanroy.springdata.jest.entities.AnnotatedBasicEntity;
+import com.github.vanroy.springdata.jest.entities.BasicEntity;
+import com.github.vanroy.springdata.jest.entities.HetroEntity1;
+import com.github.vanroy.springdata.jest.entities.HetroEntity2;
+import com.github.vanroy.springdata.jest.entities.SampleEntity;
+import com.github.vanroy.springdata.jest.entities.SampleMappingEntity;
+import com.github.vanroy.springdata.jest.entities.UseServerConfigurationEntity;
+import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
+import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
+import com.github.vanroy.springdata.jest.mapper.JestMultiGetResultMapper;
+import com.github.vanroy.springdata.jest.mapper.JestScrollResultMapper;
+import com.github.vanroy.springdata.jest.mapper.JestSearchResultMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import io.searchbox.client.JestClient;
+import io.searchbox.client.JestResult;
+import io.searchbox.core.SearchResult;
+import io.searchbox.indices.Refresh;
 
 /**
  * @author Rizwan Idrees
@@ -2249,6 +2270,23 @@ public class JestElasticsearchTemplateTests {
 		assertThat(indices.size(), is(1));
 		assertThat(indices.iterator().next(), is("test_index_alias"));
 
+	}
+	
+	@Test
+	public void indexRefreshShouldNotUseRefreshRequestParameter() throws IOException {
+		final JestClient mockClient = Mockito.mock(JestClient.class);
+		final JestElasticsearchTemplate template = new JestElasticsearchTemplate(mockClient);
+		final Refresh refreshWithParam = new Refresh.Builder().addIndex(INDEX_2_NAME).refresh(true).build();
+		final Refresh refreshWithoutParam = new Refresh.Builder().addIndex(INDEX_2_NAME).build();
+		final JestResult success = new JestResult((Gson) null);
+		success.setSucceeded(true);
+		final JestResult failure = new JestResult((Gson) null);
+		failure.setSucceeded(false);
+		failure.setResponseCode(400);
+		Mockito.when(mockClient.execute(Mockito.eq(refreshWithoutParam))).thenReturn(success);
+		Mockito.when(mockClient.execute(Mockito.eq(refreshWithParam))).thenReturn(failure);
+		template.refresh(ResultAggregator.class);
+		template.refresh(INDEX_2_NAME);
 	}
 
 	private IndexQuery getIndexQuery(SampleEntity sampleEntity) {
