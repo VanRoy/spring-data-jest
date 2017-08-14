@@ -2,4 +2,4 @@ spring:
   data:
     elasticsearch:
       properties:
-        path.home: ./target
+        path.home: ./target/es-${random.uuid}

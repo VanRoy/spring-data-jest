@@ -218,12 +218,18 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		String mapping;
 		try {
 
-			Optional<ElasticsearchPersistentProperty> idProperty = persistentEntity.getIdProperty();
+			ElasticsearchPersistentProperty idProperty = persistentEntity.getIdProperty();
+			if (idProperty == null) {
+				throw new IllegalArgumentException(String.format("No Id property for %s found", clazz.getSimpleName()));
+			}
 
-			ElasticsearchPersistentProperty property = idProperty.orElseThrow(() -> new IllegalArgumentException(String.format("No Id property for %s found", clazz.getSimpleName())));
+			mapping = buildMapping(
+				clazz,
+				persistentEntity.getIndexType(),
+				idProperty.getFieldName(),
+				persistentEntity.getParentType()
+			).string();
 
-			mapping = buildMapping(clazz, persistentEntity.getIndexType(),
-					property.getFieldName(), persistentEntity.getParentType().orElse(null)).string();
 		} catch (Exception e) {
 			throw new ElasticsearchException("Failed to build mapping for " + clazz.getSimpleName(), e);
 		}
@@ -1437,9 +1443,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private String getPersistentEntityId(Object entity) {
 
 		ElasticsearchPersistentEntity<?> persistentEntity = getPersistentEntityFor(entity.getClass());
-		Optional<Object> identifier = persistentEntity.getIdentifierAccessor(entity).getIdentifier();
+		Object identifier = persistentEntity.getIdentifierAccessor(entity).getIdentifier();
 
-		return identifier.map(String::valueOf).orElse(null);
+		return Optional.ofNullable(identifier).map(String::valueOf).orElse(null);
 	}
 
 	private static String[] toArray(List<String> values) {
@@ -1454,16 +1460,14 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private void setPersistentEntityId(Object entity, String id) {
 
 		ElasticsearchPersistentEntity<?> persistentEntity = getPersistentEntityFor(entity.getClass());
-		Optional<ElasticsearchPersistentProperty> idProperty = persistentEntity.getIdProperty();
+		ElasticsearchPersistentProperty idProperty = persistentEntity.getIdProperty();
 
 		// Only deal with text because ES generated Ids are strings !
-
-		idProperty.ifPresent(property -> {
-
-			if (property.getType().isAssignableFrom(String.class)) {
-				persistentEntity.getPropertyAccessor(entity).setProperty(property, Optional.ofNullable(id));
+		if (idProperty != null) {
+			if (idProperty.getType().isAssignableFrom(String.class)) {
+				persistentEntity.getPropertyAccessor(entity).setProperty(idProperty, id);
 			}
-		});
+		}
 	}
 
 	private void setPersistentEntityIndexAndType(Query query, Class clazz) {

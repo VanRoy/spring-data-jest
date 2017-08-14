@@ -153,8 +153,6 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 		Collection<Class<? extends Plugin>> plugins = scanPlugins();
 		plugins.add(Netty4Plugin.class);
 
-
-
 		this.node = new InternalNode(settingsBuilder.build(), plugins).start();
 
 		return Integer.parseInt(settingsBuilder.get("http.port"));

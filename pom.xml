@@ -47,9 +47,9 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 
 		<!-- Dependencies version -->
-		<springboot>2.0.0.M1</springboot>
-		<spring>5.0.0.RC1</spring>
-		<springdataes>3.0.0.BUILD-SNAPSHOT</springdataes>
+		<springboot>2.0.0.M3</springboot>
+		<spring>5.0.0.RC3</spring>
+		<springdataes>3.0.0.RC2</springdataes>
 		<jest>5.3.2</jest>
 		<gson>2.8.0</gson>
 		<awssigning>0.0.16</awssigning>
@@ -62,7 +62,7 @@
 		<logback>1.1.9</logback>
 		<aws>1.11.132</aws>
 
-		<elasticsearch>5.3.2</elasticsearch>
+		<elasticsearch>5.5.0</elasticsearch>
 
 		<!-- Version of maven plugins -->
 		<version.plugin.maven-compiler-plugin>3.6.1</version.plugin.maven-compiler-plugin>

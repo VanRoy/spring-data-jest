@@ -177,15 +177,13 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 	private <T> void setPersistentEntityId(Object entity, String id, Class<T> clazz) {
 
 		ElasticsearchPersistentEntity<?> persistentEntity = mappingContext.getRequiredPersistentEntity(clazz);
-		Optional<ElasticsearchPersistentProperty> idProperty = persistentEntity.getIdProperty();
+		ElasticsearchPersistentProperty idProperty = persistentEntity.getIdProperty();
 
 		// Only deal with text because ES generated Ids are strings !
-
-		idProperty.ifPresent(property -> {
-
-			if (property.getType().isAssignableFrom(String.class)) {
-				persistentEntity.getPropertyAccessor(entity).setProperty(property, Optional.ofNullable(id));
+		if (idProperty != null) {
+			if (idProperty.getType().isAssignableFrom(String.class)) {
+				persistentEntity.getPropertyAccessor(entity).setProperty(idProperty, id);
 			}
-		});
+		}
 	}
 }
