@@ -1,6 +1,9 @@
 package com.github.vanroy.springboot.autoconfigure.data.jest;
 
 
+import static org.hamcrest.core.Is.*;
+import static org.junit.Assert.*;
+
 import com.github.vanroy.springboot.autoconfigure.data.jest.repositories.ProductRepository;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.http.JestHttpClient;
@@ -17,41 +20,35 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ElasticsearchJestAutoConfigurationWithCustomHttpConfigurerTest.SpringBootStarterDataJestApplication.class)
 public class ElasticsearchJestAutoConfigurationWithCustomHttpConfigurerTest {
 
-    @Autowired
-    private JestClient jestClient;
+	@Autowired
+	private JestClient jestClient;
 
+	@Test
+	public void should_jest_auto_configuration_have_custom_httpbuilder() {
+		RequestConfig config = ((Configurable) ((JestHttpClient) jestClient).getHttpClient()).getConfig();
 
-    @Test
-    public void should_jest_auto_configuration_have_custom_httpbuilder() {
-        RequestConfig config = ((Configurable) ((JestHttpClient) jestClient).getHttpClient()).getConfig();
+		int connectTimeout = config.getConnectTimeout();
 
-        int connectTimeout = config.getConnectTimeout();
+		assertThat(connectTimeout, is(3551));
+	}
 
-        assertThat(connectTimeout, is(3551));
-    }
+	@SpringBootApplication(exclude = {
+			ElasticsearchAutoConfiguration.class,
+			ElasticsearchDataAutoConfiguration.class,
+			ElasticsearchJestAWSAutoConfiguration.class
+	},
+			scanBasePackageClasses = ProductRepository.class)
+	public static class SpringBootStarterDataJestApplication {
 
-    @SpringBootApplication(exclude = {
-            ElasticsearchAutoConfiguration.class,
-            ElasticsearchDataAutoConfiguration.class,
-            ElasticsearchJestAWSAutoConfiguration.class
-    },
-            scanBasePackageClasses = ProductRepository.class)
-    public static class SpringBootStarterDataJestApplication {
-
-        @Bean
-        public HttpClientConfigBuilderCustomizer customizer() {
-            return httpBuilder ->
-                    httpBuilder
-                            .connTimeout(3551);
-
-        }
-
-    }
+		@Bean
+		public HttpClientConfigBuilderCustomizer customizer() {
+			return httpBuilder ->
+					httpBuilder
+							.connTimeout(3551);
+		}
+	}
 }

@@ -234,6 +234,15 @@ public class JestElasticsearchTemplateTests {
 	}
 
 	@Test
+	public void shouldReturnEmptyListForGivenIdsUsingMultiGet() {
+		// when
+		SearchQuery query = new NativeSearchQueryBuilder().withIds(Arrays.asList("not_exist_id")).build();
+		LinkedList<SampleEntity> sampleEntities = elasticsearchTemplate.multiGet(query, SampleEntity.class);
+		// then
+		assertThat(sampleEntities.size(), is(equalTo(0)));
+	}
+
+	@Test
 	public void shouldReturnObjectsForGivenIdsUsingMultiGetWithFields() {
 		// given
 		List<IndexQuery> indexQueries;

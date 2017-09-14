@@ -5,12 +5,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.elasticsearch.Version;
 import org.elasticsearch.common.lease.Releasable;
 import org.elasticsearch.common.settings.Settings;
@@ -157,7 +157,7 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 
 		Settings settings = new NodeBuilder().settings(settingsBuilder).clusterName(clusterName).local(true).getSettings().build();
 
-        Version version = properties.getInternalNodeVersion() == null ? Version.CURRENT : Version.fromString(properties.getInternalNodeVersion());
+		Version version = properties.getInternalNodeVersion() == null ? Version.CURRENT : Version.fromString(properties.getInternalNodeVersion());
 
 		this.releasable = new InternalNode(settings, version, scanPlugins()).start();
 
@@ -202,5 +202,4 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 			return this.version;
 		}
 	}
-
 }
