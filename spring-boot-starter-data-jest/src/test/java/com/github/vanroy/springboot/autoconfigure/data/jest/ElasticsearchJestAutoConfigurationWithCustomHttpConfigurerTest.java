@@ -40,15 +40,12 @@ public class ElasticsearchJestAutoConfigurationWithCustomHttpConfigurerTest {
 			ElasticsearchAutoConfiguration.class,
 			ElasticsearchDataAutoConfiguration.class,
 			ElasticsearchJestAWSAutoConfiguration.class
-	},
-			scanBasePackageClasses = ProductRepository.class)
+	}, scanBasePackageClasses = ProductRepository.class)
 	public static class SpringBootStarterDataJestApplication {
 
 		@Bean
 		public HttpClientConfigBuilderCustomizer customizer() {
-			return httpBuilder ->
-					httpBuilder
-							.connTimeout(3551);
+			return httpBuilder -> httpBuilder.connTimeout(3551);
 		}
 	}
 }

@@ -24,10 +24,8 @@ import org.springframework.data.elasticsearch.annotations.MultiField;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.data.elasticsearch.annotations.FieldIndex.analyzed;
-import static org.springframework.data.elasticsearch.annotations.FieldIndex.not_analyzed;
 import static org.springframework.data.elasticsearch.annotations.FieldType.Integer;
-import static org.springframework.data.elasticsearch.annotations.FieldType.String;
+import static org.springframework.data.elasticsearch.annotations.FieldType.text;
 
 /**
  * Simple type to test facets
@@ -41,19 +39,20 @@ public class ArticleEntity {
 	@Id
 	private String id;
 	private String title;
+	@Field(type = text, fielddata = true)
 	private String subject;
 
 	@MultiField(
-			mainField = @Field(type = String, index = analyzed),
+			mainField = @Field(type = text, index = false, store = true),
 			otherFields = {
-					@InnerField(suffix = "untouched", type = String, store = true, index = not_analyzed),
-					@InnerField(suffix = "sort", type = String, store = true, indexAnalyzer = "keyword")
+					@InnerField(suffix = "untouched", type = text, store = true, index = false),
+					@InnerField(suffix = "sort", type = text, store = true, indexAnalyzer = "keyword")
 			}
 	)
-	private List<String> authors = new ArrayList<String>();
+	private List<String> authors = new ArrayList<>();
 
 	@Field(type = Integer, store = true)
-	private List<Integer> publishedYears = new ArrayList<Integer>();
+	private List<Integer> publishedYears = new ArrayList<>();
 
 	private int score;
 

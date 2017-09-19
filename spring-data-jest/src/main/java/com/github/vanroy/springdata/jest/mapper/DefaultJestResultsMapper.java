@@ -1,18 +1,11 @@
 package com.github.vanroy.springdata.jest.mapper;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
 import com.github.vanroy.springdata.jest.aggregation.impl.AggregatedPageImpl;
+import com.github.vanroy.springdata.jest.internal.ExtendedSearchResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import com.google.gson.JsonObject;
@@ -22,20 +15,23 @@ import io.searchbox.core.SearchResult;
 import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.ElasticsearchException;
-import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.core.DefaultEntityMapper;
 import org.springframework.data.elasticsearch.core.EntityMapper;
-import org.springframework.data.elasticsearch.core.facet.FacetResult;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
-import org.springframework.data.mapping.PersistentProperty;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.util.StringUtils;
 
-import static org.apache.commons.lang.StringUtils.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
  * Jest implementation of Spring Data Elasticsearch results mapper.
@@ -100,14 +96,14 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			}
 		}
 
-		return new PageImpl<>(results, null, response.getTotal());
+		return new AggregatedPageImpl<>(results, response.getTotal(), response.getScrollId());
 	}
 
-	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
-		return mapResults(response, clazz, pageable, null);
+	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz) {
+		return mapResults(response, clazz, null);
 	}
 
-	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable, List<AbstractAggregationBuilder> aggregations) {
+	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, List<AbstractAggregationBuilder> aggregations) {
 
 		LinkedList<T> results = new LinkedList<>();
 
@@ -117,9 +113,12 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			}
 		}
 
-		List<FacetResult> facets = AggregationResultTransformer.parseAggregations(aggregations, response.getAggregations());
+		String scrollId = null;
+		if (response instanceof ExtendedSearchResult) {
+			scrollId = ((ExtendedSearchResult) response).getScrollId();
+		}
 
-		return new AggregatedPageImpl<>(results, pageable, response.getTotal(), response.getAggregations(), facets);
+		return new AggregatedPageImpl<>(results, response.getTotal(), response.getAggregations(), scrollId);
 	}
 
 	private <T> T mapSource(JsonObject source, Class<T> clazz) {
@@ -129,7 +128,7 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			result = mapEntity(sourceString, clazz);
 			setPersistentEntityId(result, source.get(JestResult.ES_METADATA_ID).getAsString(), clazz);
 		} else {
-			//TODO(Fields resutls) : Map Fields results
+			//TODO(Fields results) : Map Fields results
 			//result = mapEntity(hit.getFields().values(), clazz);
 		}
 		return result;
@@ -175,19 +174,15 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 		}
 	}
 
-	private <T> void setPersistentEntityId(T result, String id, Class<T> clazz) {
-		if (mappingContext != null && clazz.isAnnotationPresent(Document.class)) {
-			PersistentProperty<ElasticsearchPersistentProperty> idProperty = mappingContext.getPersistentEntity(clazz).getIdProperty();
-			// Only deal with String because ES generated Ids are strings !
-			if (idProperty != null && idProperty.getType().isAssignableFrom(String.class)) {
-				Method setter = idProperty.getSetter();
-				if (setter != null) {
-					try {
-						setter.invoke(result, id);
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
-				}
+	private <T> void setPersistentEntityId(Object entity, String id, Class<T> clazz) {
+
+		ElasticsearchPersistentEntity<?> persistentEntity = mappingContext.getRequiredPersistentEntity(clazz);
+		ElasticsearchPersistentProperty idProperty = persistentEntity.getIdProperty();
+
+		// Only deal with text because ES generated Ids are strings !
+		if (idProperty != null) {
+			if (idProperty.getType().isAssignableFrom(String.class)) {
+				persistentEntity.getPropertyAccessor(entity).setProperty(idProperty, id);
 			}
 		}
 	}

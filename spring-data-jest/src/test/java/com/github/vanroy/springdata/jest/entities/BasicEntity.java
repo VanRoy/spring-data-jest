@@ -16,8 +16,6 @@
 package com.github.vanroy.springdata.jest.entities;
 
 import lombok.*;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * @author Julien Roy

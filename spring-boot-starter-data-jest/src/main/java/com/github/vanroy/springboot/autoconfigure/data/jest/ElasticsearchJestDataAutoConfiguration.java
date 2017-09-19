@@ -1,7 +1,6 @@
 package com.github.vanroy.springboot.autoconfigure.data.jest;
 
 import com.github.vanroy.springdata.jest.JestElasticsearchTemplate;
-import com.github.vanroy.springdata.jest.mapper.DefaultJestResultsMapper;
 import io.searchbox.client.JestClient;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -13,7 +12,8 @@ import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchC
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
 
 /**
- * Created by julien on 23/06/2016.
+ * Jest Elasticsearch configuration for Spring Data.
+ * @author Julien Roy
  */
 @Configuration
 @AutoConfigureAfter(ElasticsearchJestAutoConfiguration.class)

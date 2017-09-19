@@ -1,54 +1,18 @@
 package com.github.vanroy.springdata.jest;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
+import com.github.vanroy.springdata.jest.aggregation.impl.AggregatedPageImpl;
 import com.github.vanroy.springdata.jest.internal.ExtendedSearchResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
-import com.github.vanroy.springdata.jest.mapper.DefaultJestResultsMapper;
-import com.github.vanroy.springdata.jest.mapper.JestGetResultMapper;
-import com.github.vanroy.springdata.jest.mapper.JestMultiGetResultMapper;
-import com.github.vanroy.springdata.jest.mapper.JestResultsExtractor;
-import com.github.vanroy.springdata.jest.mapper.JestResultsMapper;
-import com.github.vanroy.springdata.jest.mapper.JestScrollResultMapper;
-import com.github.vanroy.springdata.jest.mapper.JestSearchResultMapper;
+import com.github.vanroy.springdata.jest.mapper.*;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import io.searchbox.action.Action;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
-import io.searchbox.core.Bulk;
-import io.searchbox.core.BulkResult;
-import io.searchbox.core.ClearScroll;
-import io.searchbox.core.Count;
-import io.searchbox.core.CountResult;
-import io.searchbox.core.Delete;
-import io.searchbox.core.DocumentResult;
-import io.searchbox.core.Get;
-import io.searchbox.core.Index;
-import io.searchbox.core.MultiGet;
-import io.searchbox.core.Search;
-import io.searchbox.core.SearchResult;
-import io.searchbox.core.SearchScroll;
-import io.searchbox.core.Update;
+import io.searchbox.core.*;
 import io.searchbox.indices.CreateIndex;
 import io.searchbox.indices.DeleteIndex;
 import io.searchbox.indices.IndicesExists;
@@ -63,9 +27,11 @@ import io.searchbox.indices.settings.GetSettings;
 import io.searchbox.indices.type.TypeExist;
 import io.searchbox.params.Parameters;
 import io.searchbox.params.SearchType;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
+import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.collect.MapBuilder;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -77,52 +43,43 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Mapping;
 import org.springframework.data.elasticsearch.annotations.Setting;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.GetResultMapper;
-import org.springframework.data.elasticsearch.core.MultiGetResultMapper;
-import org.springframework.data.elasticsearch.core.ResultsExtractor;
-import org.springframework.data.elasticsearch.core.SearchResultMapper;
+import org.springframework.data.elasticsearch.core.*;
 import org.springframework.data.elasticsearch.core.convert.ElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.convert.MappingElasticsearchConverter;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
+import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
 import org.springframework.data.elasticsearch.core.mapping.SimpleElasticsearchMappingContext;
-import org.springframework.data.elasticsearch.core.query.AliasQuery;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
-import org.springframework.data.elasticsearch.core.query.DeleteQuery;
-import org.springframework.data.elasticsearch.core.query.GetQuery;
-import org.springframework.data.elasticsearch.core.query.IndexBoost;
-import org.springframework.data.elasticsearch.core.query.IndexQuery;
-import org.springframework.data.elasticsearch.core.query.MoreLikeThisQuery;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
-import org.springframework.data.elasticsearch.core.query.Query;
-import org.springframework.data.elasticsearch.core.query.ScriptField;
-import org.springframework.data.elasticsearch.core.query.SearchQuery;
-import org.springframework.data.elasticsearch.core.query.SourceFilter;
-import org.springframework.data.elasticsearch.core.query.StringQuery;
-import org.springframework.data.elasticsearch.core.query.UpdateQuery;
-import org.springframework.data.mapping.PersistentProperty;
+import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
 
-import static com.github.vanroy.springdata.jest.MappingBuilder.*;
-import static org.apache.commons.lang.StringUtils.*;
-import static org.elasticsearch.index.VersionType.*;
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.*;
+
+import static com.github.vanroy.springdata.jest.MappingBuilder.buildMapping;
+import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.elasticsearch.index.VersionType.EXTERNAL;
+import static org.elasticsearch.index.query.QueryBuilders.moreLikeThisQuery;
+import static org.elasticsearch.index.query.QueryBuilders.wrapperQuery;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
@@ -137,19 +94,33 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private final JestClient client;
 	private final ElasticsearchConverter elasticsearchConverter;
 	private final JestResultsMapper resultsMapper;
+	private final ErrorMapper errorMapper;
 
 	public JestElasticsearchTemplate(JestClient client) {
-		this(client, null, null);
+		this(client, null, null, null);
 	}
 
 	public JestElasticsearchTemplate(JestClient client, JestResultsMapper resultMapper) {
 		this(client, null, resultMapper);
 	}
 
+	public JestElasticsearchTemplate(JestClient client, JestResultsMapper resultMapper, ErrorMapper errorMapper) {
+		this(client, null, resultMapper, errorMapper);
+	}
+
+	public JestElasticsearchTemplate(JestClient client, ErrorMapper errorMapper) {
+		this(client, null, null, errorMapper);
+	}
+
 	public JestElasticsearchTemplate(JestClient client, ElasticsearchConverter elasticsearchConverter, JestResultsMapper resultsMapper) {
+		this(client, elasticsearchConverter, resultsMapper, null);
+	}
+
+	public JestElasticsearchTemplate(JestClient client, ElasticsearchConverter elasticsearchConverter, JestResultsMapper resultsMapper, ErrorMapper errorMapper) {
 		this.client = client;
 		this.elasticsearchConverter = (elasticsearchConverter == null) ? new MappingElasticsearchConverter(new SimpleElasticsearchMappingContext()) : elasticsearchConverter;
 		this.resultsMapper = (resultsMapper == null) ? new DefaultJestResultsMapper(this.elasticsearchConverter.getMappingContext()) : resultsMapper;
+		this.errorMapper = (errorMapper == null) ? new DefaultErrorMapper() : errorMapper;
 	}
 
 	public static String readFileFromClasspath(String url) {
@@ -243,11 +214,22 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 				logger.info("mappingPath in @Mapping has to be defined. Building mappings using @Field");
 			}
 		}
-		ElasticsearchPersistentEntity<T> persistentEntity = getPersistentEntityFor(clazz);
+		ElasticsearchPersistentEntity<Object> persistentEntity = getPersistentEntityFor(clazz);
 		String mapping;
 		try {
-			mapping = buildMapping(clazz, persistentEntity.getIndexType(), persistentEntity
-					.getIdProperty().getFieldName(), persistentEntity.getParentType()).string();
+
+			ElasticsearchPersistentProperty idProperty = persistentEntity.getIdProperty();
+			if (idProperty == null) {
+				throw new IllegalArgumentException(String.format("No Id property for %s found", clazz.getSimpleName()));
+			}
+
+			mapping = buildMapping(
+				clazz,
+				persistentEntity.getIndexType(),
+				idProperty.getFieldName(),
+				persistentEntity.getParentType()
+			).string();
+
 		} catch (Exception e) {
 			throw new ElasticsearchException("Failed to build mapping for " + clazz.getSimpleName(), e);
 		}
@@ -255,6 +237,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public boolean putMapping(String indexName, String type, Object mapping) {
 		Assert.notNull(indexName, "No index defined for putMapping()");
 		Assert.notNull(type, "No type defined for putMapping()");
@@ -265,7 +248,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 				source = String.valueOf(mapping);
 			} else if (mapping instanceof Map) {
 				XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON);
-				builder.map((Map)mapping);
+				builder.map((Map) mapping);
 				source = builder.string();
 			} else if (mapping instanceof XContentBuilder) {
 				source = ((XContentBuilder) mapping).string();
@@ -385,7 +368,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	public <T> T queryForObject(String indexName, GetQuery query, Class<T> clazz, JestGetResultMapper mapper) {
 
-		ElasticsearchPersistentEntity<T> persistentEntity = getPersistentEntityFor(clazz);
+		ElasticsearchPersistentEntity<Object> persistentEntity = getPersistentEntityFor(clazz);
 
 		String index = indexName == null ? persistentEntity.getIndexName() : indexName;
 
@@ -422,7 +405,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz, JestSearchResultMapper mapper) {
 		SearchResult response = doSearch(prepareSearch(query, clazz), query);
-		return mapper.mapResults(response, clazz, query.getPageable(), query.getAggregations());
+		return mapper.mapResults(response, clazz, query.getAggregations());
 	}
 
 	@Override
@@ -452,7 +435,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	@Override
 	public <T> List<String> queryForIds(SearchQuery query) {
-		SearchSourceBuilder search = prepareSearch(query).query(query.getQuery()).noFields();
+		SearchSourceBuilder search = prepareSearch(query).query(query.getQuery()).fetchSource(false);
 		if (query.getFilter() != null) {
 			search.postFilter(query.getFilter());
 		}
@@ -482,7 +465,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			searchRequestBuilder.postFilter(elasticsearchFilter);
 
 		SearchResult response = executeSearch(criteriaQuery, searchRequestBuilder);
-		return resultsMapper.mapResults(response, clazz, criteriaQuery.getPageable());
+		return resultsMapper.mapResults(response, clazz);
 	}
 
 	@Override
@@ -496,17 +479,15 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	public <T> Page<T> queryForPage(StringQuery query, Class<T> clazz, JestSearchResultMapper mapper) {
-		SearchResult response = executeSearch(query, prepareSearch(query, clazz).query(query.getSource()));
-		return mapper.mapResults(response, clazz, query.getPageable());
+		SearchResult response = executeSearch(query, prepareSearch(query, clazz).query(wrapperQuery(query.getSource())));
+		return mapper.mapResults(response, clazz);
 	}
 
 
 	@Override
 	public <T> CloseableIterator<T> stream(CriteriaQuery query, Class<T> clazz) {
 		final long scrollTimeInMillis = TimeValue.timeValueMinutes(1).millis();
-		setPersistentEntityIndexAndType(query, clazz);
-		final String initScrollId = scan(query, scrollTimeInMillis, false);
-		return doStream(initScrollId, scrollTimeInMillis, clazz, resultsMapper);
+		return doStream(scrollTimeInMillis, (ScrolledPage<T>) startScroll(scrollTimeInMillis, query, clazz), clazz, resultsMapper);
 	}
 
 	@Override
@@ -515,28 +496,26 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	@Override
-	public <T> CloseableIterator<T> stream(SearchQuery query, Class<T> clazz, SearchResultMapper mapper) {
+	public <T> CloseableIterator<T> stream(SearchQuery query, final Class<T> clazz, final SearchResultMapper mapper) {
 		throw new UnsupportedOperationException();
 	}
 
-	public <T> CloseableIterator<T> stream(SearchQuery query, Class<T> clazz, JestResultsMapper mapper) {
+	public <T> CloseableIterator<T> stream(SearchQuery query, final Class<T> clazz, final JestResultsMapper mapper) {
 		final long scrollTimeInMillis = TimeValue.timeValueMinutes(1).millis();
-		setPersistentEntityIndexAndType(query, clazz);
-		final String initScrollId = scan(query, scrollTimeInMillis, false);
-		return doStream(initScrollId, scrollTimeInMillis, clazz, mapper);
+		return doStream(scrollTimeInMillis, (ScrolledPage<T>) startScroll(scrollTimeInMillis, query, clazz, mapper), clazz, mapper);
 	}
 
-	private <T> CloseableIterator<T> doStream(final String initScrollId, final long scrollTime, final Class<T> clazz, final JestResultsMapper mapper) {
+	private <T> CloseableIterator<T> doStream(final long scrollTimeInMillis, final ScrolledPage<T> page, final Class<T> clazz, final JestResultsMapper mapper) {
 		return new CloseableIterator<T>() {
 
 			/** As we couldn't retrieve single result with scroll, store current hits. */
-			private volatile Iterator<T> currentHits;
+			private volatile Iterator<T> currentHits = page.iterator();
 
 			/** The scroll id. */
-			private volatile String scrollId = initScrollId;
+			private volatile String scrollId = page.getScrollId();
 
 			/** If stream is finished (ie: cluster returns no results. */
-			private volatile boolean finished;
+			private volatile boolean finished = !currentHits.hasNext();
 
 			@Override
 			public void close() {
@@ -553,23 +532,18 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 			@Override
 			public boolean hasNext() {
-
 				// Test if stream is finished
 				if (finished) {
 					return false;
 				}
 				// Test if it remains hits
 				if (currentHits == null || !currentHits.hasNext()) {
-
 					// Do a new request
-					Action searchScroll = new SearchScroll.Builder(scrollId, TimeValue.timeValueMillis(scrollTime).toString()).build();
-					SearchScrollResult response = new SearchScrollResult(execute(searchScroll));
-
+					final ScrolledPage<T> scroll = (ScrolledPage<T>) continueScroll(scrollId, scrollTimeInMillis, clazz, mapper);
 					// Save hits and scroll id
-					currentHits = mapper.mapResults(response, clazz).iterator();
+					currentHits = scroll.iterator();
 					finished = !currentHits.hasNext();
-					scrollId = response.getScrollId();
-
+					scrollId = scroll.getScrollId();
 				}
 				return currentHits.hasNext();
 			}
@@ -580,6 +554,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 					return currentHits.next();
 				}
 				throw new NoSuchElementException();
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException("remove");
 			}
 		};
 	}
@@ -701,7 +680,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		DocumentResult result = execute(prepareUpdate(updateQuery));
 
-		return new UpdateResponse(result.getIndex(), result.getType(), result.getId(), result.getJsonObject().get("_version").getAsLong(), false);
+		return new UpdateResponse(null, result.getType(), result.getId(), result.getJsonObject().get("_version").getAsLong(), DocWriteResponse.Result.CREATED);
 	}
 
 	@Override
@@ -768,6 +747,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> void delete(DeleteQuery deleteQuery, Class<T> clazz) {
 
 		String indexName = isNotBlank(deleteQuery.getIndex()) ? deleteQuery.getIndex() : getPersistentEntityFor(clazz).getIndexName();
@@ -778,35 +758,55 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(deleteQuery.getQuery())
 				.withIndices(indexName)
 				.withTypes(typeName)
-				.withPageable(new PageRequest(0, pageSize))
+				.withPageable(PageRequest.of(0, pageSize))
 				.build();
 
-		String scrollId = scan(searchQuery, scrollTimeInMillis, true);
 
-		List<String> ids = new ArrayList<>();
-		boolean hasRecords = true;
-		while (hasRecords) {
-			Page<String> page = scroll(scrollId, scrollTimeInMillis, new JestScrollResultMapper() {
-				@Override
-				public <T> Page<T> mapResults(SearchScrollResult response, Class<T> clazz) {
-					List<String> result = new ArrayList<>();
 
-					for (SearchScrollResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
-						result.add(searchHit.source.get(JestResult.ES_METADATA_ID).getAsString());
-					}
+		JestSearchResultMapper onlyIdSearchResultMapper = new JestSearchResultMapper() {
+			@Override
+			public <U> AggregatedPage<U> mapResults(SearchResult response, Class<U> clazz) {
+				List<String> result = new ArrayList<>();
 
-					if (result.size() > 0) {
-						return new PageImpl<>((List<T>) result);
-					}
-					return null;
+				for (SearchResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
+					result.add(searchHit.source.get(JestResult.ES_METADATA_ID).getAsString());
 				}
-			});
-			if (page != null && page.getContent().size() > 0) {
-				ids.addAll(page.getContent());
-			} else {
-				hasRecords = false;
+
+				if (result.size() > 0) {
+					return new AggregatedPageImpl<U>((List<U>) result, ((ExtendedSearchResult)response).getScrollId());
+				}
+				return new AggregatedPageImpl<U>(Collections.emptyList(), ((ExtendedSearchResult)response).getScrollId());
 			}
-		}
+
+			@Override
+			public <U> AggregatedPage<U> mapResults(SearchResult response, Class<U> clazz, List<AbstractAggregationBuilder> aggregations) {
+				return mapResults(response, clazz);
+			}
+		};
+
+		Page<String> scrolledResult = startScroll(scrollTimeInMillis, searchQuery, String.class, onlyIdSearchResultMapper);
+		List<String> ids = new ArrayList<>();
+
+		JestScrollResultMapper onlyIdResultMapper = new JestScrollResultMapper() {
+			@Override
+			public <U> Page<U> mapResults(SearchScrollResult response, Class<U> clazz) {
+				List<String> result = new ArrayList<>();
+
+				for (SearchScrollResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
+					result.add(searchHit.source.get(JestResult.ES_METADATA_ID).getAsString());
+				}
+
+				if (result.size() > 0) {
+					return new AggregatedPageImpl<>((List<U>) result, response.getScrollId());
+				}
+				return new AggregatedPageImpl<>(Collections.emptyList(), response.getScrollId());
+			}
+		};
+
+		do {
+			ids.addAll(scrolledResult.getContent());
+			scrolledResult = continueScroll(((ScrolledPage<T>)scrolledResult).getScrollId(), scrollTimeInMillis, String.class, onlyIdResultMapper);
+		} while(scrolledResult.getContent().size() != 0);
 
 		if(!ids.isEmpty()) {
 
@@ -817,7 +817,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			execute(bulk.build());
 		}
 
-		clearScroll(scrollId);
+		clearScroll(((ScrolledPage)scrolledResult).getScrollId());
 	}
 
 	@Override
@@ -835,10 +835,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	@Override
 	public boolean deleteIndex(String indexName) {
 		Assert.notNull(indexName, "No index defined for delete operation");
-		if (indexExists(indexName)) {
-			return executeWithAcknowledge(new DeleteIndex.Builder(indexName).build());
-		}
-		return false;
+		return indexExists(indexName) && executeWithAcknowledge(new DeleteIndex.Builder(indexName).build());
 	}
 
 	@Override
@@ -858,17 +855,146 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	@Override
 	public void refresh(String indexName) {
-		execute(new Refresh.Builder().addIndex(indexName).refresh(true).build());
+		execute(new Refresh.Builder().addIndex(indexName).build());
 	}
 
 	@Override
 	public <T> void refresh(Class<T> clazz) {
 		ElasticsearchPersistentEntity persistentEntity = getPersistentEntityFor(clazz);
-		execute(new Refresh.Builder().addIndex(persistentEntity.getIndexName()).refresh(true).build());
+		execute(new Refresh.Builder().addIndex(persistentEntity.getIndexName()).build());
+	}
+
+	private <T> SearchSourceBuilder prepareScroll(Query query, Class<T> clazz) {
+		setPersistentEntityIndexAndType(query, clazz);
+		return prepareScroll(query);
+	}
+
+	private SearchSourceBuilder prepareScroll(Query query) {
+
+		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+
+		if(query.getPageable() != null && query.getPageable().isPaged()) {
+			searchSourceBuilder.size(query.getPageable().getPageSize());
+		}
+		searchSourceBuilder.from(0);
+
+		if (!isEmpty(query.getFields())) {
+			searchSourceBuilder.fetchSource(toArray(query.getFields()), null);
+		}
+
+		if (query.getSort() != null) {
+			for (Sort.Order order : query.getSort()) {
+				searchSourceBuilder.sort(order.getProperty(), order.getDirection() == Sort.Direction.DESC ? SortOrder.DESC : SortOrder.ASC);
+			}
+		}
+
+		if (query.getMinScore() > 0) {
+			searchSourceBuilder.minScore(query.getMinScore());
+		}
+
+		return searchSourceBuilder;
+	}
+
+	private SearchResult doScroll(SearchSourceBuilder searchSourceBuilder, CriteriaQuery criteriaQuery, long scrollTimeInMillis) {
+		Assert.notNull(criteriaQuery.getIndices(), "No index defined for Query");
+		Assert.notNull(criteriaQuery.getTypes(), "No type define for Query");
+		Assert.notNull(criteriaQuery.getPageable(), "Query.pageable is required for scan & scroll");
+
+		QueryBuilder elasticsearchQuery = new CriteriaQueryProcessor().createQueryFromCriteria(criteriaQuery.getCriteria());
+		QueryBuilder elasticsearchFilter = new CriteriaFilterProcessor().createFilterFromCriteria(criteriaQuery.getCriteria());
+
+		searchSourceBuilder.query(elasticsearchQuery != null ? elasticsearchQuery : QueryBuilders.matchAllQuery());
+
+		if (elasticsearchFilter != null) {
+			searchSourceBuilder.postFilter(elasticsearchFilter);
+		}
+
+		Search.Builder search = new Search.Builder(searchSourceBuilder.toString()).
+				addType(criteriaQuery.getTypes()).
+				addIndex(criteriaQuery.getIndices()).
+				setParameter(Parameters.SIZE, criteriaQuery.getPageable().getPageSize()).
+				setParameter(Parameters.SCROLL, scrollTimeInMillis + "ms");
+
+		return new ExtendedSearchResult(execute(search.build()));
+	}
+
+	private SearchResult doScroll(SearchSourceBuilder searchSourceBuilder, SearchQuery searchQuery, long scrollTimeInMillis) {
+		Assert.notNull(searchQuery.getIndices(), "No index defined for Query");
+		Assert.notNull(searchQuery.getTypes(), "No type define for Query");
+		Assert.notNull(searchQuery.getPageable(), "Query.pageable is required for scan & scroll");
+
+		if (searchQuery.getFilter() != null) {
+			searchSourceBuilder.postFilter(searchQuery.getFilter());
+		}
+
+		Search.Builder search = new Search.Builder(searchSourceBuilder.toString()).
+				addType(searchQuery.getTypes()).
+				addIndex(searchQuery.getIndices()).
+				setParameter(Parameters.SIZE, searchQuery.getPageable().getPageSize()).
+				setParameter(Parameters.SCROLL, scrollTimeInMillis + "ms");
+
+		return new ExtendedSearchResult(execute(search.build()));
 	}
 
 	@Override
-	public String scan(CriteriaQuery criteriaQuery, long scrollTimeInMillis, boolean noFields) {
+	public <T> Page<T> startScroll(long scrollTimeInMillis, SearchQuery searchQuery, Class<T> clazz) {
+		SearchResult response = doScroll(prepareScroll(searchQuery, clazz), searchQuery, scrollTimeInMillis);
+		return resultsMapper.mapResults(response, clazz, null);
+	}
+
+	@Override
+	public <T> Page<T> startScroll(long scrollTimeInMillis, CriteriaQuery criteriaQuery, Class<T> clazz) {
+		SearchResult response = doScroll(prepareScroll(criteriaQuery, clazz), criteriaQuery, scrollTimeInMillis);
+		return resultsMapper.mapResults(response, clazz, null);
+	}
+
+	@Override
+	public <T> Page<T> startScroll(long scrollTimeInMillis, SearchQuery searchQuery, Class<T> clazz, SearchResultMapper mapper) {
+		throw new UnsupportedOperationException();
+	}
+
+	public <T> Page<T> startScroll(long scrollTimeInMillis, SearchQuery searchQuery, Class<T> clazz, JestSearchResultMapper mapper) {
+		SearchResult response = doScroll(prepareScroll(searchQuery, clazz), searchQuery, scrollTimeInMillis);
+		return mapper.mapResults(response, clazz, null);
+	}
+
+	@Override
+	public <T> Page<T> startScroll(long scrollTimeInMillis, CriteriaQuery criteriaQuery, Class<T> clazz, SearchResultMapper mapper) {
+		throw new UnsupportedOperationException();
+	}
+
+	public <T> Page<T> startScroll(long scrollTimeInMillis, CriteriaQuery criteriaQuery, Class<T> clazz, JestSearchResultMapper mapper) {
+		SearchResult response = doScroll(prepareScroll(criteriaQuery, clazz), criteriaQuery, scrollTimeInMillis);
+		return mapper.mapResults(response, clazz, null);
+	}
+
+	@Override
+	public <T> Page<T> continueScroll(@Nullable String scrollId, long scrollTimeInMillis, Class<T> clazz) {
+		SearchScroll scroll = new SearchScroll.Builder(scrollId, scrollTimeInMillis + "ms").build();
+		SearchScrollResult response = new SearchScrollResult(execute(scroll));
+
+		return resultsMapper.mapResults(response, clazz);
+	}
+
+	@Override
+	public <T> Page<T> continueScroll(@Nullable String scrollId, long scrollTimeInMillis, Class<T> clazz, SearchResultMapper mapper) {
+		throw new UnsupportedOperationException();
+	}
+
+	public <T> Page<T> continueScroll(@Nullable String scrollId, long scrollTimeInMillis, Class<T> clazz, JestScrollResultMapper mapper) {
+		SearchScroll scroll = new SearchScroll.Builder(scrollId, scrollTimeInMillis + "ms").build();
+		SearchScrollResult response = new SearchScrollResult(execute(scroll));
+
+		return mapper.mapResults(response, clazz);
+	}
+
+	@Override
+	public void clearScroll(String scrollId) {
+		execute(new ClearScroll.Builder().addScrollId(scrollId).build(), true);
+	}
+/*
+	@Override
+	public String startScroll(CriteriaQuery criteriaQuery, long scrollTimeInMillis, boolean noFields) {
 		Assert.notNull(criteriaQuery.getIndices(), "No index defined for Query");
 		Assert.notNull(criteriaQuery.getTypes(), "No type define for Query");
 		Assert.notNull(criteriaQuery.getPageable(), "Query.pageable is required for scan & scroll");
@@ -901,13 +1027,13 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	@Override
-	public <T> String scan(CriteriaQuery query, long scrollTimeInMillis, boolean noFields, Class<T> clazz) {
+	public <T> String startScroll(CriteriaQuery query, long scrollTimeInMillis, boolean noFields, Class<T> clazz) {
 		setPersistentEntityIndexAndType(query, clazz);
-		return scan(query, scrollTimeInMillis, noFields);
+		return startScroll(query, scrollTimeInMillis, noFields);
 	}
 
 	@Override
-	public String scan(SearchQuery searchQuery, long scrollTimeInMillis, boolean noFields) {
+	public String startScroll(SearchQuery searchQuery, long scrollTimeInMillis, boolean noFields) {
 		Assert.notNull(searchQuery.getIndices(), "No index defined for Query");
 		Assert.notNull(searchQuery.getTypes(), "No type define for Query");
 		Assert.notNull(searchQuery.getPageable(), "Query.pageable is required for scan & scroll");
@@ -937,9 +1063,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	@Override
-	public <T> String scan(SearchQuery query, long scrollTimeInMillis, boolean noFields, Class<T> clazz) {
+	public <T> String startScroll(SearchQuery query, long scrollTimeInMillis, boolean noFields, Class<T> clazz) {
 		setPersistentEntityIndexAndType(query, clazz);
-		return scan(query, scrollTimeInMillis, noFields);
+		return startScroll(query, scrollTimeInMillis, noFields);
 	}
 
 	@Override
@@ -957,11 +1083,6 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public <T> void clearScroll(String scrollId) {
-		execute(new ClearScroll.Builder().addScrollId(scrollId).build(), true);
-	}
-
 	public <T> Page<T> scroll(String scrollId, long scrollTimeInMillis, JestScrollResultMapper mapper) {
 		SearchScroll scroll = new SearchScroll.Builder(scrollId, scrollTimeInMillis + "ms").build();
 
@@ -969,7 +1090,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		return mapper.mapResults(response, null);
 	}
-
+*/
 	@Override
 	public <T> Page<T> moreLikeThis(MoreLikeThisQuery query, Class<T> clazz) {
 		ElasticsearchPersistentEntity persistentEntity = getPersistentEntityFor(clazz);
@@ -980,8 +1101,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		Assert.notNull(type, "No 'type' defined for MoreLikeThisQuery");
 		Assert.notNull(query.getId(), "No document id defined for MoreLikeThisQuery");
 
-		MoreLikeThisQueryBuilder moreLikeThisQueryBuilder = moreLikeThisQuery()
-				.addLikeItem(new MoreLikeThisQueryBuilder.Item(indexName, type, query.getId()));
+		MoreLikeThisQueryBuilder moreLikeThisQueryBuilder = moreLikeThisQuery(toArray(new MoreLikeThisQueryBuilder.Item(indexName, type, query.getId())));
 
 		if (query.getMinTermFreq() != null) {
 			moreLikeThisQueryBuilder.minTermFreq(query.getMinTermFreq());
@@ -1074,10 +1194,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		return indices;
 	}
 
-	public ElasticsearchPersistentEntity getPersistentEntityFor(Class clazz) {
+	@SuppressWarnings("unchecked")
+	public ElasticsearchPersistentEntity<Object> getPersistentEntityFor(Class clazz) {
 		Assert.isTrue(clazz.isAnnotationPresent(Document.class), "Unable to identify index name. " + clazz.getSimpleName()
 				+ " is not a Document. Make sure the document class is annotated with @Document(indexName=\"foo\")");
-		return elasticsearchConverter.getMappingContext().getPersistentEntity(clazz);
+		return (ElasticsearchPersistentEntity<Object>) elasticsearchConverter.getMappingContext().getRequiredPersistentEntity(clazz);
 	}
 
 	private <T extends JestResult> T execute(Action<T> action) {
@@ -1087,18 +1208,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private <T extends JestResult> T execute(Action<T> action, boolean acceptNotFound) {
 		try {
 
+			// Execute action
 			T result = client.execute(action);
-			if (!result.isSucceeded()) {
 
-				String errorMessage = String.format("Cannot execute jest action , response code : %s , error : %s , message : %s", result.getResponseCode(), result.getErrorMessage(), getMessage(result));
-
-				if(acceptNotFound && isSuccessfulResponse(result.getResponseCode())) {
-					logger.debug(errorMessage);
-				} else {
-					logger.error(errorMessage);
-					throw new ElasticsearchException(errorMessage);
-				}
-			}
+			// Check result and map error
+			errorMapper.mapError(action, result, acceptNotFound);
 
 			return result;
 
@@ -1124,14 +1238,14 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		int startRecord = 0;
 
-		if (query.getPageable() != null) {
+		if (query.getPageable() != null && query.getPageable().isPaged()) {
 			startRecord = query.getPageable().getPageNumber() * query.getPageable().getPageSize();
 			searchSourceBuilder.size(query.getPageable().getPageSize());
 		}
 		searchSourceBuilder.from(startRecord);
 
 		if (!query.getFields().isEmpty()) {
-			searchSourceBuilder.fields(query.getFields());
+			searchSourceBuilder.fetchSource(toArray(query.getFields()), null);
 		}
 
 		if (query.getSourceFilter() != null) {
@@ -1163,10 +1277,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		}
 
 		if (searchQuery.getHighlightFields() != null) {
-			HighlightBuilder highlighter = searchSourceBuilder.highlighter();
+			HighlightBuilder highlighter = SearchSourceBuilder.highlight();
 			for (HighlightBuilder.Field highlightField : searchQuery.getHighlightFields()) {
 				highlighter.field(highlightField);
 			}
+			searchSourceBuilder.highlighter(highlighter);
 		}
 
 		if (!isEmpty(searchQuery.getAggregations())) {
@@ -1182,7 +1297,6 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		}
 
 		if (!searchQuery.getScriptFields().isEmpty()) {
-			searchSourceBuilder.field("_source");
 			for (ScriptField scriptedField : searchQuery.getScriptFields()) {
 				searchSourceBuilder.scriptField(scriptedField.fieldName(), scriptedField.script());
 			}
@@ -1222,19 +1336,24 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 				indexBuilder = new Index.Builder(resultsMapper.getEntityMapper().mapToString(query.getObject()));
 
 				// If we have a query id and a document id, do not ask ES to generate one.
-				if (query.getId() != null && entityId != null) {
-					indexBuilder.index(indexName).type(type).id(query.getId());
+				if (entityId != null) {
+					indexBuilder.index(indexName).type(type).id(entityId);
 				} else {
 					indexBuilder.index(indexName).type(type);
 				}
 			} else if (query.getSource() != null) {
-				indexBuilder = new Index.Builder(query.getSource()).index(indexName).type(type).id(query.getId());
+				indexBuilder = new Index.Builder(query.getSource()).index(indexName).type(type);
 			} else {
 				throw new ElasticsearchException("object or source is null, failed to index the document [id: " + query.getId() + "]");
 			}
+
 			if (query.getVersion() != null) {
 				indexBuilder.setParameter(Parameters.VERSION, query.getVersion());
 				indexBuilder.setParameter(Parameters.VERSION_TYPE, EXTERNAL.name().toLowerCase());
+			}
+
+			if (query.getId() != null) {
+				indexBuilder.id(query.getId());
 			}
 
 			if (query.getParentId() != null) {
@@ -1316,37 +1435,17 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		return createIndex(getPersistentEntityFor(clazz).getIndexName(), getDefaultSettings(getPersistentEntityFor(clazz)));
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean isDocument(Class clazz) {
 		return clazz.isAnnotationPresent(Document.class);
 	}
 
 	private String getPersistentEntityId(Object entity) {
-		PersistentProperty idProperty = getPersistentEntityFor(entity.getClass()).getIdProperty();
-		if (idProperty != null) {
-			Method getter = idProperty.getGetter();
-			if (getter != null) {
-				try {
-					Object id = getter.invoke(entity);
-					if (id != null) {
-						return String.valueOf(id);
-					}
-				} catch (Throwable t) {
-					t.printStackTrace();
-				}
-			}
-		}
-		return null;
-	}
 
-	private <T extends JestResult> String getMessage(T result) {
-		if (result.getJsonObject() == null) {
-			return null;
-		}
-		JsonPrimitive message = result.getJsonObject().getAsJsonPrimitive("message");
-		if (message == null) {
-			return null;
-		}
-		return message.getAsString();
+		ElasticsearchPersistentEntity<?> persistentEntity = getPersistentEntityFor(entity.getClass());
+		Object identifier = persistentEntity.getIdentifierAccessor(entity).getIdentifier();
+
+		return Optional.ofNullable(identifier).map(String::valueOf).orElse(null);
 	}
 
 	private static String[] toArray(List<String> values) {
@@ -1354,17 +1453,19 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		return values.toArray(valuesAsArray);
 	}
 
+	private static MoreLikeThisQueryBuilder.Item[] toArray(MoreLikeThisQueryBuilder.Item... values) {
+		return values;
+	}
+
 	private void setPersistentEntityId(Object entity, String id) {
-		PersistentProperty idProperty = getPersistentEntityFor(entity.getClass()).getIdProperty();
-		// Only deal with String because ES generated Ids are strings !
-		if (idProperty != null && idProperty.getType().isAssignableFrom(String.class)) {
-			Method setter = idProperty.getSetter();
-			if (setter != null) {
-				try {
-					setter.invoke(entity, id);
-				} catch (Throwable t) {
-					t.printStackTrace();
-				}
+
+		ElasticsearchPersistentEntity<?> persistentEntity = getPersistentEntityFor(entity.getClass());
+		ElasticsearchPersistentProperty idProperty = persistentEntity.getIdProperty();
+
+		// Only deal with text because ES generated Ids are strings !
+		if (idProperty != null) {
+			if (idProperty.getType().isAssignableFrom(String.class)) {
+				persistentEntity.getPropertyAccessor(entity).setProperty(idProperty, id);
 			}
 		}
 	}
@@ -1401,9 +1502,5 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			}
 		}
 		return ids;
-	}
-
-	private static boolean isSuccessfulResponse(int statusCode) {
-		return statusCode < 300 || statusCode == 404;
 	}
 }

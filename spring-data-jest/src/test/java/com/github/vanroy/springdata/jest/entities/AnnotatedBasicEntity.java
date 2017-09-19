@@ -16,8 +16,6 @@
 package com.github.vanroy.springdata.jest.entities;
 
 import lombok.Data;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.springframework.data.elasticsearch.annotations.Document;
 
 /**

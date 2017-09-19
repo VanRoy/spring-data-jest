@@ -1,15 +1,16 @@
 package com.github.vanroy.springdata.jest.aggregation;
 
+import io.searchbox.core.search.aggregation.Aggregation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.elasticsearch.core.ScrolledPage;
+
 import java.util.List;
 import java.util.Map;
-
-import io.searchbox.core.search.aggregation.Aggregation;
-import org.springframework.data.elasticsearch.core.FacetedPage;
 
 /**
  * @author Petar Tahchiev
  */
-public interface AggregatedPage<T> extends FacetedPage<T> {
+public interface AggregatedPage<T> extends Page<T>, ScrolledPage<T> {
 
 	boolean hasAggregations();
 
