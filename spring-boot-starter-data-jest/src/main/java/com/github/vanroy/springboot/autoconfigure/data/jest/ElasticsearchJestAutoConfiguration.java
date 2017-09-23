@@ -12,6 +12,7 @@ import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpHost;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.node.Node;
@@ -32,6 +33,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.filter.AssignableTypeFilter;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.SocketUtils;
 import org.springframework.util.StringUtils;
@@ -114,7 +116,14 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 		if (StringUtils.hasText(this.properties.getUsername())) {
 			builder.defaultCredentials(this.properties.getUsername(), this.properties.getPassword());
 		}
-
+		
+		String proxyHost = this.properties.getProxy().getHost();
+		if (StringUtils.hasText(proxyHost)) {
+			Integer proxyPort = this.properties.getProxy().getPort();
+			Assert.notNull(proxyPort, "Proxy port must not be null");
+			builder.proxy(new HttpHost(proxyHost, proxyPort));
+		}
+		
 		List<HttpClientConfigBuilderCustomizer> configBuilderCustomizers = builderCustomizers != null ? builderCustomizers.getIfAvailable() : new ArrayList<>();
 		if (!CollectionUtils.isEmpty(configBuilderCustomizers)) {
 			logger.info("Custom HttpClientConfigBuilderCustomizers detected. Applying these to the HttpClientConfig builder.");

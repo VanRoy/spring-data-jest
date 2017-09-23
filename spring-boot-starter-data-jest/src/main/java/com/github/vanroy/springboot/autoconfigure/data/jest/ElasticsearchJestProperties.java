@@ -19,6 +19,15 @@ public class ElasticsearchJestProperties {
 	private int defaultMaxTotalConnectionPerRoute = 50;
 	private int readTimeout = 5000;
 	private Boolean multiThreaded = true;
+	
+	/**
+	 * Proxy settings.
+	 */
+	private final Proxy proxy = new Proxy();
+	
+	public Proxy getProxy() {
+		return this.proxy;
+	}
 
 	public String getUri() {
 		return uri;
@@ -82,5 +91,35 @@ public class ElasticsearchJestProperties {
 
 	public void setAwsRegion(String awsRegion) {
 		this.awsRegion = awsRegion;
+	}
+	
+	public static class Proxy {
+
+		/**
+		 * Proxy host the HTTP client should use.
+		 */
+		private String host;
+
+		/**
+		 * Proxy port the HTTP client should use.
+		 */
+		private Integer port;
+
+		public String getHost() {
+			return this.host;
+		}
+
+		public void setHost(String host) {
+			this.host = host;
+		}
+
+		public Integer getPort() {
+			return this.port;
+		}
+
+		public void setPort(Integer port) {
+			this.port = port;
+		}
+
 	}
 }
