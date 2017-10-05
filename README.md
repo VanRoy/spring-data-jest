@@ -13,7 +13,7 @@ Versions
 
 |   spring data jest |      spring boot     | spring data elasticsearch |  jest  | elasticsearch |
 |:------------------:|:--------------------:|:-------------------------:|:------:|:-------------:|
-|   3.0.0-SNAPSHOT   | 2.0.0-BUILD-SNAPSHOT |   3.0.0-BUILD-SNAPSHOT    |  5.3.2 |      5.3.2    |
+|   3.0.0.RELEASE    |       2.0.0.M4       |       3.0.0.RELEASE       |  5.3.2 |      5.5.0    |
 |   2.3.1.RELEASE    |         1.5.x        |       2.1.0.RELEASE       |  2.0.4 |      2.4.4    |
 |   2.2.0.RELEASE    |       >= 1.4.3       |       2.0.6.RELEASE       |  2.0.4 |      2.4.3    |
 |   2.1.4.RELEASE    |        < 1.4.3       |       2.0.5.RELEASE       |  2.0.3 |      2.2.0    |
@@ -31,7 +31,7 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-boot-starter-data-jest</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0.RELEASE</version>
 </dependency>
 ```
 
@@ -41,7 +41,7 @@ For specific case of AWS ES Domain (with Request Signing) add this dependency:
 <dependency>
     <groupId>vc.inreach.aws</groupId>
     <artifactId>aws-signing-request-interceptor</artifactId>
-    <version>0.0.14</version>
+    <version>0.0.16</version>
 </dependency>
 ```
 
@@ -78,7 +78,7 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-data-jest</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0.RELEASE</version>
 </dependency>
 ```
 

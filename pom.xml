@@ -5,7 +5,7 @@
 
 	<groupId>com.github.vanroy</groupId>
 	<artifactId>spring-data-jest-build</artifactId>
-	<version>3.0.0-SNAPSHOT</version>
+	<version>3.0.0.RELEASE</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data Jest Build</name>
@@ -47,9 +47,9 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 
 		<!-- Dependencies version -->
-		<springboot>2.0.0.M3</springboot>
-		<spring>5.0.0.RC3</spring>
-		<springdataes>3.0.0.RC2</springdataes>
+		<springboot>2.0.0.M4</springboot>
+		<spring>5.0.0.RELEASE</spring>
+		<springdataes>3.0.0.RELEASE</springdataes>
 		<jest>5.3.2</jest>
 		<gson>2.8.0</gson>
 		<awssigning>0.0.16</awssigning>
