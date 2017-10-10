@@ -871,7 +871,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	private SearchSourceBuilder prepareScroll(Query query) {
 
-		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+		SearchSourceBuilder searchSourceBuilder = getSearchSourceBuilder();
 
 		if(query.getPageable() != null && query.getPageable().isPaged()) {
 			searchSourceBuilder.size(query.getPageable().getPageSize());
@@ -1201,6 +1201,10 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		return (ElasticsearchPersistentEntity<Object>) elasticsearchConverter.getMappingContext().getRequiredPersistentEntity(clazz);
 	}
 
+	protected SearchSourceBuilder getSearchSourceBuilder() {
+		return new SearchSourceBuilder();
+	}
+
 	private <T extends JestResult> T execute(Action<T> action) {
 		return execute(action, false);
 	}
@@ -1234,7 +1238,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		Assert.notNull(query.getIndices(), "No index defined for Query");
 		Assert.notNull(query.getTypes(), "No type defined for Query");
 
-		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+		SearchSourceBuilder searchSourceBuilder = getSearchSourceBuilder();
 
 		int startRecord = 0;
 
