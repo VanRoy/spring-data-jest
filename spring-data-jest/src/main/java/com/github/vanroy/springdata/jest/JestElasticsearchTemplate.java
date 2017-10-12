@@ -6,7 +6,6 @@ import com.github.vanroy.springdata.jest.internal.ExtendedSearchResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import com.github.vanroy.springdata.jest.mapper.*;
-import com.github.vanroy.springdata.jest.provider.DefaultSearchSourceBuilderProvider;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.searchbox.action.Action;
@@ -33,7 +32,6 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.collect.MapBuilder;
-import org.elasticsearch.common.inject.Provider;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -74,6 +72,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.function.Supplier;
 
 import static com.github.vanroy.springdata.jest.MappingBuilder.buildMapping;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -96,7 +95,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private final ElasticsearchConverter elasticsearchConverter;
 	private final JestResultsMapper resultsMapper;
 	private final ErrorMapper errorMapper;
-	private final Provider<SearchSourceBuilder> searchSourceBuilderProvider;
+	private final Supplier<SearchSourceBuilder> searchSourceBuilderProvider;
 
 	public JestElasticsearchTemplate(JestClient client) {
 		this(client, null, null, null, null);
@@ -118,12 +117,12 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		this(client, elasticsearchConverter, resultsMapper, null, null);
 	}
 
-	public JestElasticsearchTemplate(JestClient client, ElasticsearchConverter elasticsearchConverter, JestResultsMapper resultsMapper, ErrorMapper errorMapper, Provider<SearchSourceBuilder> searchSourceBuilderProvider) {
+	public JestElasticsearchTemplate(JestClient client, ElasticsearchConverter elasticsearchConverter, JestResultsMapper resultsMapper, ErrorMapper errorMapper, Supplier<SearchSourceBuilder> searchSourceBuilderProvider) {
 		this.client = client;
 		this.elasticsearchConverter = (elasticsearchConverter == null) ? new MappingElasticsearchConverter(new SimpleElasticsearchMappingContext()) : elasticsearchConverter;
 		this.resultsMapper = (resultsMapper == null) ? new DefaultJestResultsMapper(this.elasticsearchConverter.getMappingContext()) : resultsMapper;
 		this.errorMapper = (errorMapper == null) ? new DefaultErrorMapper() : errorMapper;
-		this.searchSourceBuilderProvider = (searchSourceBuilderProvider == null) ? new DefaultSearchSourceBuilderProvider<>() : searchSourceBuilderProvider;
+		this.searchSourceBuilderProvider = (searchSourceBuilderProvider == null) ? SearchSourceBuilder::new : searchSourceBuilderProvider;
 	}
 
 	public static String readFileFromClasspath(String url) {
@@ -604,7 +603,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	private long doCount(Count.Builder countRequestBuilder, QueryBuilder elasticsearchQuery) {
 		if (elasticsearchQuery != null) {
-			countRequestBuilder.query(new SearchSourceBuilder().query(elasticsearchQuery).toString());
+			countRequestBuilder.query(searchSourceBuilderProvider.get().query(elasticsearchQuery).toString());
 		}
 
 		CountResult result = execute(countRequestBuilder.build());

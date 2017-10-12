@@ -1,13 +1,15 @@
 package com.github.vanroy.springdata.jest.provider;
 
+import java.util.function.Supplier;
+
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
-public class CustomSearchSourceBuilderProvider<T extends SearchSourceBuilder> extends DefaultSearchSourceBuilderProvider<T> {
+public class CustomSearchSourceBuilderProvider implements Supplier<SearchSourceBuilder> {
 
     @Override
-    public T get() {
+    public SearchSourceBuilder get() {
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.trackScores(true);
-        return (T)searchSourceBuilder;
+        return searchSourceBuilder;
     }
 }
