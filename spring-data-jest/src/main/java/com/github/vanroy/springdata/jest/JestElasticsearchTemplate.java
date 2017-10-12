@@ -6,9 +6,9 @@ import com.github.vanroy.springdata.jest.internal.ExtendedSearchResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import com.github.vanroy.springdata.jest.mapper.*;
+import com.github.vanroy.springdata.jest.provider.DefaultSearchSourceBuilderProvider;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import io.searchbox.action.Action;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
@@ -33,6 +33,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.collect.MapBuilder;
+import org.elasticsearch.common.inject.Provider;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -95,9 +96,10 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private final ElasticsearchConverter elasticsearchConverter;
 	private final JestResultsMapper resultsMapper;
 	private final ErrorMapper errorMapper;
+	private final Provider<SearchSourceBuilder> searchSourceBuilderProvider;
 
 	public JestElasticsearchTemplate(JestClient client) {
-		this(client, null, null, null);
+		this(client, null, null, null, null);
 	}
 
 	public JestElasticsearchTemplate(JestClient client, JestResultsMapper resultMapper) {
@@ -105,22 +107,23 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	public JestElasticsearchTemplate(JestClient client, JestResultsMapper resultMapper, ErrorMapper errorMapper) {
-		this(client, null, resultMapper, errorMapper);
+		this(client, null, resultMapper, errorMapper, null);
 	}
 
 	public JestElasticsearchTemplate(JestClient client, ErrorMapper errorMapper) {
-		this(client, null, null, errorMapper);
+		this(client, null, null, errorMapper, null);
 	}
 
 	public JestElasticsearchTemplate(JestClient client, ElasticsearchConverter elasticsearchConverter, JestResultsMapper resultsMapper) {
-		this(client, elasticsearchConverter, resultsMapper, null);
+		this(client, elasticsearchConverter, resultsMapper, null, null);
 	}
 
-	public JestElasticsearchTemplate(JestClient client, ElasticsearchConverter elasticsearchConverter, JestResultsMapper resultsMapper, ErrorMapper errorMapper) {
+	public JestElasticsearchTemplate(JestClient client, ElasticsearchConverter elasticsearchConverter, JestResultsMapper resultsMapper, ErrorMapper errorMapper, Provider<SearchSourceBuilder> searchSourceBuilderProvider) {
 		this.client = client;
 		this.elasticsearchConverter = (elasticsearchConverter == null) ? new MappingElasticsearchConverter(new SimpleElasticsearchMappingContext()) : elasticsearchConverter;
 		this.resultsMapper = (resultsMapper == null) ? new DefaultJestResultsMapper(this.elasticsearchConverter.getMappingContext()) : resultsMapper;
 		this.errorMapper = (errorMapper == null) ? new DefaultErrorMapper() : errorMapper;
+		this.searchSourceBuilderProvider = (searchSourceBuilderProvider == null) ? new DefaultSearchSourceBuilderProvider<>() : searchSourceBuilderProvider;
 	}
 
 	public static String readFileFromClasspath(String url) {
@@ -871,7 +874,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	private SearchSourceBuilder prepareScroll(Query query) {
 
-		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+		SearchSourceBuilder searchSourceBuilder = searchSourceBuilderProvider.get();
 
 		if(query.getPageable() != null && query.getPageable().isPaged()) {
 			searchSourceBuilder.size(query.getPageable().getPageSize());
@@ -1234,7 +1237,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		Assert.notNull(query.getIndices(), "No index defined for Query");
 		Assert.notNull(query.getTypes(), "No type defined for Query");
 
-		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+		SearchSourceBuilder searchSourceBuilder = searchSourceBuilderProvider.get();
 
 		int startRecord = 0;
 

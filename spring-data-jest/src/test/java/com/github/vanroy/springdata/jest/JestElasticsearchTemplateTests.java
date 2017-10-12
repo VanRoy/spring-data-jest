@@ -25,8 +25,10 @@ import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import com.github.vanroy.springdata.jest.mapper.JestMultiGetResultMapper;
 import com.github.vanroy.springdata.jest.mapper.JestResultsMapper;
 import com.github.vanroy.springdata.jest.mapper.JestSearchResultMapper;
+import com.github.vanroy.springdata.jest.provider.CustomSearchSourceBuilderProvider;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.DocumentResult;
 import io.searchbox.core.SearchResult;
@@ -46,6 +48,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -89,6 +92,9 @@ public class JestElasticsearchTemplateTests {
 
 	@Autowired
 	private JestElasticsearchTemplate elasticsearchTemplate;
+
+	@Autowired
+	private JestClient jestClient;
 
 	private static List<IndexQuery> createSampleEntitiesWithMessage(String message, int numberOfEntities) {
 		List<IndexQuery> indexQueries = new ArrayList<>();
@@ -2205,6 +2211,49 @@ public class JestElasticsearchTemplateTests {
 		assertThat(indices.size(), is(1));
 		assertThat(indices.iterator().next(), is(INDEX_ALIAS_NAME));
 
+	}
+
+	@Test
+	public void shouldUseCustomSearchSourceBuilder() {
+		// given
+		CustomSearchSourceBuilderProvider searchSourceBuilderProviderSpy = Mockito.spy(new CustomSearchSourceBuilderProvider());
+		JestElasticsearchTemplate elasticsearchTemplate = new JestElasticsearchTemplate(jestClient, null, null, null, searchSourceBuilderProviderSpy);
+
+		List<IndexQuery> indexQueries = new ArrayList<>();
+		// first document
+		String documentId = randomNumeric(5);
+		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
+				.message("abc")
+				.rate(10)
+				.version(System.currentTimeMillis()).build();
+
+		// second document
+		String documentId2 = randomNumeric(5);
+		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2)
+				.message("xyz")
+				.rate(5)
+				.version(System.currentTimeMillis()).build();
+
+		// third document
+		String documentId3 = randomNumeric(5);
+		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3)
+				.message("xyz")
+				.rate(15)
+				.version(System.currentTimeMillis()).build();
+
+		indexQueries = getIndexQueries(Arrays.asList(sampleEntity1, sampleEntity2, sampleEntity3));
+
+		elasticsearchTemplate.bulkIndex(indexQueries);
+		elasticsearchTemplate.refresh(SampleEntity.class);
+
+		SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(matchAllQuery())
+				.withSort(new FieldSortBuilder("rate").order(SortOrder.ASC)).build();
+		// when
+		Page<SampleEntity> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class);
+		// then
+		Mockito.verify(searchSourceBuilderProviderSpy, Mockito.atLeastOnce()).get();
+		assertThat(sampleEntities.getTotalElements(), equalTo(3L));
+		assertThat(sampleEntities.getContent().get(0).getRate(), is(sampleEntity2.getRate()));
 	}
 
 	private IndexQuery getIndexQuery(SampleEntity sampleEntity) {
