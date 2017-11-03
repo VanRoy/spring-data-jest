@@ -591,20 +591,25 @@ public class JestElasticsearchTemplateTests {
 	public void shouldReturnPageableResultsGivenStringQuery() {
 		// given
 		String documentId = randomNumeric(5);
-		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
+		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("some message 1")
+				.version(System.currentTimeMillis()).build();
+		
+		documentId = randomNumeric(5);
+		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId).message("some message 2")
 				.version(System.currentTimeMillis()).build();
 
-		IndexQuery indexQuery = getIndexQuery(sampleEntity);
-
-		elasticsearchTemplate.index(indexQuery);
+		elasticsearchTemplate.index(getIndexQuery(sampleEntity1));
+		elasticsearchTemplate.index(getIndexQuery(sampleEntity2));
 		elasticsearchTemplate.refresh(SampleEntity.class);
 
-		StringQuery stringQuery = new StringQuery(matchAllQuery().toString(), PageRequest.of(0, 10));
+		StringQuery stringQuery = new StringQuery(matchAllQuery().toString(), PageRequest.of(0, 1));
 		// when
 		Page<SampleEntity> sampleEntities = elasticsearchTemplate.queryForPage(stringQuery, SampleEntity.class);
 
 		// then
-		assertThat(sampleEntities.getTotalElements(), is(greaterThanOrEqualTo(1L)));
+		assertEquals(2, sampleEntities.getTotalElements());
+		assertEquals(2, sampleEntities.getTotalPages());
+		assertTrue(sampleEntities.hasNext());
 	}
 
 	@Test
