@@ -1,5 +1,7 @@
 package com.github.vanroy.springdata.jest.mapper;
 
+import org.springframework.data.domain.Pageable;
+
 import io.searchbox.core.DocumentResult;
 
 /**

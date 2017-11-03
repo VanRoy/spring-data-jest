@@ -1,5 +1,26 @@
 package com.github.vanroy.springdata.jest.mapper;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.elasticsearch.search.SearchHitField;
+import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.ElasticsearchException;
+import org.springframework.data.elasticsearch.core.DefaultEntityMapper;
+import org.springframework.data.elasticsearch.core.EntityMapper;
+import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
+import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
+import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.util.StringUtils;
+
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -9,29 +30,10 @@ import com.github.vanroy.springdata.jest.internal.ExtendedSearchResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import com.google.gson.JsonObject;
+
 import io.searchbox.client.JestResult;
 import io.searchbox.core.DocumentResult;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.search.SearchHitField;
-import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
-import org.springframework.data.domain.Page;
-import org.springframework.data.elasticsearch.ElasticsearchException;
-import org.springframework.data.elasticsearch.core.DefaultEntityMapper;
-import org.springframework.data.elasticsearch.core.EntityMapper;
-import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
-import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
-import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.util.StringUtils;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
  * Jest implementation of Spring Data Elasticsearch results mapper.
@@ -96,14 +98,14 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			}
 		}
 
-		return new AggregatedPageImpl<>(results, response.getTotal(), response.getScrollId());
+		return new AggregatedPageImpl<>(results, Pageable.unpaged(), response.getTotal(), response.getScrollId());
 	}
 
-	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz) {
-		return mapResults(response, clazz, null);
+	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+		return mapResults(response, clazz, null, pageable);
 	}
 
-	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, List<AbstractAggregationBuilder> aggregations) {
+	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, List<AbstractAggregationBuilder> aggregations, Pageable pageable) {
 
 		LinkedList<T> results = new LinkedList<>();
 
@@ -118,7 +120,7 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			scrollId = ((ExtendedSearchResult) response).getScrollId();
 		}
 
-		return new AggregatedPageImpl<>(results, response.getTotal(), response.getAggregations(), scrollId);
+		return new AggregatedPageImpl<>(results, pageable, response.getTotal(), response.getAggregations(), scrollId);
 	}
 
 	private <T> T mapSource(JsonObject source, Class<T> clazz) {
