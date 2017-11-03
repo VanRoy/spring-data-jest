@@ -53,6 +53,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -407,7 +408,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz, JestSearchResultMapper mapper) {
 		SearchResult response = doSearch(prepareSearch(query, clazz), query);
-		return mapper.mapResults(response, clazz, query.getAggregations());
+		return mapper.mapResults(response, clazz, query.getAggregations(), query.getPageable());
 	}
 
 	@Override
@@ -467,7 +468,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			searchRequestBuilder.postFilter(elasticsearchFilter);
 
 		SearchResult response = executeSearch(criteriaQuery, searchRequestBuilder);
-		return resultsMapper.mapResults(response, clazz);
+		return resultsMapper.mapResults(response, clazz, criteriaQuery.getPageable());
 	}
 
 	@Override
@@ -482,7 +483,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	public <T> Page<T> queryForPage(StringQuery query, Class<T> clazz, JestSearchResultMapper mapper) {
 		SearchResult response = executeSearch(query, prepareSearch(query, clazz).query(wrapperQuery(query.getSource())));
-		return mapper.mapResults(response, clazz);
+		return mapper.mapResults(response, clazz, query.getPageable());
 	}
 
 
@@ -767,7 +768,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		JestSearchResultMapper onlyIdSearchResultMapper = new JestSearchResultMapper() {
 			@Override
-			public <U> AggregatedPage<U> mapResults(SearchResult response, Class<U> clazz) {
+			public <U> AggregatedPage<U> mapResults(SearchResult response, Class<U> clazz, Pageable pageable) {
 				List<String> result = new ArrayList<>();
 
 				for (SearchResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
@@ -781,8 +782,8 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			}
 
 			@Override
-			public <U> AggregatedPage<U> mapResults(SearchResult response, Class<U> clazz, List<AbstractAggregationBuilder> aggregations) {
-				return mapResults(response, clazz);
+			public <U> AggregatedPage<U> mapResults(SearchResult response, Class<U> clazz, List<AbstractAggregationBuilder> aggregations, Pageable pageable) {
+				return mapResults(response, clazz, pageable);
 			}
 		};
 
@@ -941,13 +942,13 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	@Override
 	public <T> Page<T> startScroll(long scrollTimeInMillis, SearchQuery searchQuery, Class<T> clazz) {
 		SearchResult response = doScroll(prepareScroll(searchQuery, clazz), searchQuery, scrollTimeInMillis);
-		return resultsMapper.mapResults(response, clazz, null);
+		return resultsMapper.mapResults(response, clazz, searchQuery.getPageable());
 	}
 
 	@Override
 	public <T> Page<T> startScroll(long scrollTimeInMillis, CriteriaQuery criteriaQuery, Class<T> clazz) {
 		SearchResult response = doScroll(prepareScroll(criteriaQuery, clazz), criteriaQuery, scrollTimeInMillis);
-		return resultsMapper.mapResults(response, clazz, null);
+		return resultsMapper.mapResults(response, clazz, criteriaQuery.getPageable());
 	}
 
 	@Override
@@ -957,7 +958,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	public <T> Page<T> startScroll(long scrollTimeInMillis, SearchQuery searchQuery, Class<T> clazz, JestSearchResultMapper mapper) {
 		SearchResult response = doScroll(prepareScroll(searchQuery, clazz), searchQuery, scrollTimeInMillis);
-		return mapper.mapResults(response, clazz, null);
+		return mapper.mapResults(response, clazz, searchQuery.getPageable());
 	}
 
 	@Override
@@ -967,7 +968,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	public <T> Page<T> startScroll(long scrollTimeInMillis, CriteriaQuery criteriaQuery, Class<T> clazz, JestSearchResultMapper mapper) {
 		SearchResult response = doScroll(prepareScroll(criteriaQuery, clazz), criteriaQuery, scrollTimeInMillis);
-		return mapper.mapResults(response, clazz, null);
+		return mapper.mapResults(response, clazz, criteriaQuery.getPageable());
 	}
 
 	@Override
