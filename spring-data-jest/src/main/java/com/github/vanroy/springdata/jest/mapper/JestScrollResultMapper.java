@@ -1,7 +1,6 @@
 package com.github.vanroy.springdata.jest.mapper;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 
