@@ -15,6 +15,7 @@ import io.searchbox.core.SearchResult;
 import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.core.DefaultEntityMapper;
 import org.springframework.data.elasticsearch.core.EntityMapper;
@@ -29,7 +30,6 @@ import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
 
@@ -96,14 +96,14 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			}
 		}
 
-		return new AggregatedPageImpl<>(results, response.getTotal(), response.getScrollId());
+		return new AggregatedPageImpl<>(results, Pageable.unpaged(), response.getTotal(), response.getScrollId());
 	}
 
-	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz) {
-		return mapResults(response, clazz, null);
+	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+		return mapResults(response, clazz, null, pageable);
 	}
 
-	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, List<AbstractAggregationBuilder> aggregations) {
+	public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, List<AbstractAggregationBuilder> aggregations, Pageable pageable) {
 
 		LinkedList<T> results = new LinkedList<>();
 
@@ -118,7 +118,7 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			scrollId = ((ExtendedSearchResult) response).getScrollId();
 		}
 
-		return new AggregatedPageImpl<>(results, response.getTotal(), response.getAggregations(), scrollId);
+		return new AggregatedPageImpl<>(results, pageable, response.getTotal(), response.getAggregations(), scrollId);
 	}
 
 	private <T> T mapSource(JsonObject source, Class<T> clazz) {

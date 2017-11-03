@@ -32,24 +32,24 @@ public class AggregatedPageImpl<T> extends PageImpl<T> implements AggregatedPage
 		this.aggregations = null;
 	}
 
-	public AggregatedPageImpl(List<T> content, long total) {
-		super(content, Pageable.unpaged(), total);
+	public AggregatedPageImpl(List<T> content, Pageable pageable, long total) {
+		super(content, pageable, total);
 		this.aggregations = null;
 	}
 
-	public AggregatedPageImpl(List<T> content, long total, String scrollId) {
-		super(content, Pageable.unpaged(), total);
+	public AggregatedPageImpl(List<T> content, Pageable pageable, long total, String scrollId) {
+		super(content, pageable, total);
 		this.scrollId = scrollId;
 		this.aggregations = null;
 	}
 
-	public AggregatedPageImpl(List<T> content, long total, MetricAggregation aggregations) {
-		super(content, Pageable.unpaged(), total);
+	public AggregatedPageImpl(List<T> content, Pageable pageable, long total, MetricAggregation aggregations) {
+		super(content, pageable, total);
 		this.aggregations = aggregations;
 	}
 
-	public AggregatedPageImpl(List<T> content, long total, MetricAggregation aggregations, String scrollId) {
-		super(content, Pageable.unpaged(), total);
+	public AggregatedPageImpl(List<T> content, Pageable pageable, long total, MetricAggregation aggregations, String scrollId) {
+		super(content, pageable, total);
 		this.aggregations = aggregations;
 		this.scrollId = scrollId;
 	}
