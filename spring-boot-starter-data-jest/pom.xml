@@ -42,17 +42,27 @@
             <version>${springboot}</version>
             <optional>true</optional>
         </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Only required for start local ES node -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <version>${springboot}</version>
             <scope>test</scope>
         </dependency>
+
         <!-- Specific case of AWS instance -->
         <dependency>
             <groupId>vc.inreach.aws</groupId>
