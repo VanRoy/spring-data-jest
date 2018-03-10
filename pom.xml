@@ -5,7 +5,7 @@
 
 	<groupId>com.github.vanroy</groupId>
 	<artifactId>spring-data-jest-build</artifactId>
-	<version>3.1.0.RELEASE</version>
+	<version>3.1.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Data Jest Build</name>
@@ -50,7 +50,7 @@
 		<springboot>2.0.0.RELEASE</springboot>
 		<spring>5.0.4.RELEASE</spring>
 		<springdataes>3.0.5.RELEASE</springdataes>
-		<jest>5.3.2</jest>
+		<jest>5.3.3</jest>
 		<gson>2.8.0</gson>
 		<awssigning>0.0.16</awssigning>
 		<springcloudaws>1.2.1.RELEASE</springcloudaws>

@@ -1199,7 +1199,7 @@ public class JestElasticsearchTemplateTests {
 		elasticsearchTemplate.createIndex(entity);
 		elasticsearchTemplate.putMapping(entity);
 		// when
-		Map<String, Map<String, Map<String, String>>> mapping = elasticsearchTemplate.getMapping(entity);
+		Map<String, Map<String, Map<String, Object>>> mapping = elasticsearchTemplate.getMapping(entity);
 		// then
 		assertThat(mapping.containsKey("properties"), is(true));
 		assertThat(mapping.get("properties").containsKey("message"), is(true));
