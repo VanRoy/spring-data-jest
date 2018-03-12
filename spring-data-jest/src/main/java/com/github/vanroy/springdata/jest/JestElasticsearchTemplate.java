@@ -631,9 +631,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 		Assert.notNull(indexName, "No index defined for Query");
 
-		Count.Builder countRequestBuilder = new Count.Builder().addIndex(Arrays.asList(indexName));
+		Count.Builder countRequestBuilder = new Count.Builder().addIndices(Arrays.asList(indexName));
 		if (types != null) {
-			countRequestBuilder.addType(Arrays.asList(types));
+			countRequestBuilder.addTypes(Arrays.asList(types));
 		}
 		return countRequestBuilder;
 	}
@@ -913,8 +913,8 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		}
 
 		Search.Builder search = new Search.Builder(searchSourceBuilder.toString()).
-				addType(criteriaQuery.getTypes()).
-				addIndex(criteriaQuery.getIndices()).
+				addTypes(criteriaQuery.getTypes()).
+				addIndices(criteriaQuery.getIndices()).
 				setParameter(Parameters.SIZE, criteriaQuery.getPageable().getPageSize()).
 				setParameter(Parameters.SCROLL, scrollTimeInMillis + "ms");
 
@@ -931,8 +931,8 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		}
 
 		Search.Builder search = new Search.Builder(searchSourceBuilder.toString()).
-				addType(searchQuery.getTypes()).
-				addIndex(searchQuery.getIndices()).
+				addTypes(searchQuery.getTypes()).
+				addIndices(searchQuery.getIndices()).
 				setParameter(Parameters.SIZE, searchQuery.getPageable().getPageSize()).
 				setParameter(Parameters.SCROLL, scrollTimeInMillis + "ms");
 
@@ -1313,8 +1313,8 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		Search.Builder search = new Search.Builder(request.toString());
 		if (query != null) {
 			search.
-					addType(query.getTypes()).
-					addIndex(query.getIndices()).
+					addTypes(query.getTypes()).
+					addIndices(query.getIndices()).
 					setSearchType(SearchType.valueOf(query.getSearchType().name()));
 		}
 
