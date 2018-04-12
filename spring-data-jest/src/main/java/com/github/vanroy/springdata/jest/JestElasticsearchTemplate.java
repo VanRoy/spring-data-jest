@@ -926,6 +926,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		Assert.notNull(searchQuery.getTypes(), "No type define for Query");
 		Assert.notNull(searchQuery.getPageable(), "Query.pageable is required for scan & scroll");
 
+		QueryBuilder elasticsearchQuery = searchQuery.getQuery();
+		searchSourceBuilder.query(elasticsearchQuery != null ? elasticsearchQuery : QueryBuilders.matchAllQuery());
+
 		if (searchQuery.getFilter() != null) {
 			searchSourceBuilder.postFilter(searchQuery.getFilter());
 		}
