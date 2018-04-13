@@ -844,12 +844,14 @@ public class JestElasticsearchTemplateTests {
 	public void shouldReturnResultsWithScanAndScrollForGivenSearchQuery() {
 		//given
 		List<IndexQuery> entities = createSampleEntitiesWithMessage("Test message", 30);
+		entities.addAll(createSampleEntitiesWithMessage("Filtered out message", 30));
 		// when
 		elasticsearchTemplate.bulkIndex(entities);
 		elasticsearchTemplate.refresh(SampleEntity.class);
 		// then
 
-		SearchQuery searchQuery = new NativeSearchQueryBuilder().withQuery(matchAllQuery()).withIndices(INDEX_NAME)
+		SearchQuery searchQuery = new NativeSearchQueryBuilder()
+				.withQuery(QueryBuilders.matchQuery("message", "Test")).withIndices(INDEX_NAME)
 				.withTypes(TYPE_NAME).withPageable(PageRequest.of(0, 10)).build();
 
 		ScrolledPage<SampleEntity> scroll = (ScrolledPage<SampleEntity>) elasticsearchTemplate.startScroll(1000, searchQuery, SampleEntity.class);
