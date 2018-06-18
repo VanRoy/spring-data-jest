@@ -5,14 +5,14 @@
     <parent>
         <groupId>com.github.vanroy</groupId>
         <artifactId>spring-data-jest-build</artifactId>
-        <version>3.1.3-SNAPSHOT</version>
+        <version>3.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>spring-boot-sample-data-jest</artifactId>
+    <artifactId>spring-boot-sample-data-jest-aws</artifactId>
 
-    <name>Spring Boot Data Jest Sample</name>
-    <description>Spring Boot Data Jest Sample</description>
+    <name>Spring Boot Data Jest AWS Sample</name>
+    <description>Spring Boot Data Jest AWS Sample</description>
 
     <properties>
         <main.basedir>${basedir}/../..</main.basedir>
@@ -28,22 +28,30 @@
             <artifactId>spring-boot-starter-data-jest</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- Only required for start local ES node -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>vc.inreach.aws</groupId>
+            <artifactId>aws-signing-request-interceptor</artifactId>
+            <version>${awssigning}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.amazonaws</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-aws-autoconfigure</artifactId>
+            <version>${springcloudaws}</version>
+        </dependency>
+
     </dependencies>
 
     <build>
