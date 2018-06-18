@@ -1,6 +1,5 @@
 package com.github.vanroy.springboot.autoconfigure.data.jest;
 
-import org.elasticsearch.node.NodeValidationException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -8,7 +7,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.boot.test.util.EnvironmentTestUtils;
+import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -23,18 +22,16 @@ public class ElasticsearchJestAutoConfigurationWithProxyTest {
 	@Before
 	public void setupMock() {
 		MockitoAnnotations.initMocks(this);
-
 	}
 
 	@Test
-	public void should_jest_auto_configuration_have_proxy() throws NodeValidationException {
+	public void should_jest_auto_configuration_have_proxy() {
 		load("spring.data.jest.uri=http://localhost:9200", "spring.data.jest.proxy.host=proxy.example.com",
 				"spring.data.jest.proxy.port=8080");
-
 	}
 
 	@Test
-	public void should_jest_auto_configuration_have_proxy_without_port() throws NodeValidationException {
+	public void should_jest_auto_configuration_have_proxy_without_port() {
 		this.thrown.expect(BeanCreationException.class);
 		this.thrown.expectMessage("Proxy port must not be null");
 		load("spring.data.jest.uri=http://localhost:9200", "spring.data.jest.proxy.host=proxy.example.com");
@@ -44,10 +41,10 @@ public class ElasticsearchJestAutoConfigurationWithProxyTest {
 		load(null, environment);
 	}
 
-	@SuppressWarnings("deprecation")
 	private void load(Class<?> config, String... environment) {
 		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-		EnvironmentTestUtils.addEnvironment(context, environment);
+
+		TestPropertyValues.of(environment).applyTo(context);
 		if (config != null) {
 			context.register(config);
 		}
@@ -55,5 +52,4 @@ public class ElasticsearchJestAutoConfigurationWithProxyTest {
 		context.refresh();
 		this.context = context;
 	}
-
 }

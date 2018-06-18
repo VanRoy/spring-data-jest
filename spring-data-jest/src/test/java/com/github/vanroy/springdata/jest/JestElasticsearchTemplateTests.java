@@ -1222,7 +1222,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldPutXContentBuilderMappingForGivenEntity() throws Exception {
 		// given
-		elasticsearchTemplate.createIndex("test-mapping");
+		elasticsearchTemplate.createIndex("test-custom-mapping");
 
 		XContentBuilder xContentBuilder = JsonXContent.contentBuilder()
 			.startObject()
@@ -1239,7 +1239,7 @@ public class JestElasticsearchTemplateTests {
 			.endObject();
 
 		// when
-		assertThat(elasticsearchTemplate.putMapping("test-mapping", "mapping", xContentBuilder), is(true));
+		assertThat(elasticsearchTemplate.putMapping("test-custom-mapping", "mapping", xContentBuilder), is(true));
 	}
 
 	@Test

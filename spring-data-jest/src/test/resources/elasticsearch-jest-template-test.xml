@@ -6,12 +6,12 @@
 
     <!-- Elastic search test node -->
     <elasticsearch:node-client id="client" local="true" cluster-name="#{T(java.util.UUID).randomUUID().toString()}"
-                               http-enabled="true" path-data="target/elasticsearchTestData" path-home="src/test/resources/test-home-dir"
+                               path-data="target/elasticsearchTestData" path-home="src/test/resources/test-home-dir"
                                path-configuration="node-client-configuration.yml"/>
 
 
     <!-- ElasticSearch Jest Client -->
-    <bean id="jestClient" factory-bean="jestClientFactory" factory-method="getObject" destroy-method="shutdownClient" />
+    <bean id="jestClient" factory-bean="jestClientFactory" factory-method="getObject" destroy-method="close" />
 
     <bean id="jestClientConfigBuilder" class="io.searchbox.client.config.HttpClientConfig.Builder">
         <constructor-arg type="java.lang.String" value="http://localhost:9200"/>

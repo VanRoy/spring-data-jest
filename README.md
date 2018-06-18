@@ -13,6 +13,7 @@ Versions
 
 |   spring data jest |      spring boot     | spring data elasticsearch |  jest  | elasticsearch |
 |:------------------:|:--------------------:|:-------------------------:|:------:|:-------------:|
+|   3.2.0.RELEASE    |         2.1.0        |       3.2.1.RELEASE       |  6.3.1 |      6.2.2    |
 |   3.1.5.RELEASE    |         2.0.5        |      3.0.10.RELEASE       |  5.3.4 |      5.5.0    |
 |   3.0.0.RELEASE    |       2.0.0.M4       |       3.0.0.RELEASE       |  5.3.2 |      5.5.0    |
 |   2.3.1.RELEASE    |         1.5.x        |       2.1.0.RELEASE       |  2.0.4 |      2.4.4    |
@@ -32,7 +33,13 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-boot-starter-data-jest</artifactId>
-    <version>3.1.5.RELEASE</version>
+    <version>3.2.0.RELEASE</version>
+</dependency>
+
+<!-- Only required for start local ES node -->
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-core</artifactId>
 </dependency>
 ```
 
@@ -79,7 +86,13 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-data-jest</artifactId>
-    <version>3.1.5.RELEASE</version>
+    <version>3.2.0.RELEASE</version>
+</dependency>
+
+<!-- Only required for start local / embedded ES node -->
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-core</artifactId>
 </dependency>
 ```
 
@@ -101,7 +114,7 @@ You can set up repository scanning via xml configuration, which will happily cre
 
 
     <!-- ElasticSearch Jest Client -->
-    <bean id="jestClient" factory-bean="jestClientFactory" factory-method="getObject" destroy-method="shutdownClient" />
+    <bean id="jestClient" factory-bean="jestClientFactory" factory-method="getObject" destroy-method="close" />
 
     <bean id="jestClientConfigBuilder" class="io.searchbox.client.config.HttpClientConfig.Builder">
         <constructor-arg type="java.lang.String" value="http://localhost:9200"/>

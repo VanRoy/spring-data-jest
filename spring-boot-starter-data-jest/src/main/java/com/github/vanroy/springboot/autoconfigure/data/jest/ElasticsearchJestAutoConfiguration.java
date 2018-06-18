@@ -118,14 +118,14 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 		if (StringUtils.hasText(this.properties.getUsername())) {
 			builder.defaultCredentials(this.properties.getUsername(), this.properties.getPassword());
 		}
-		
+
 		String proxyHost = this.properties.getProxy().getHost();
 		if (StringUtils.hasText(proxyHost)) {
 			Integer proxyPort = this.properties.getProxy().getPort();
 			Assert.notNull(proxyPort, "Proxy port must not be null");
 			builder.proxy(new HttpHost(proxyHost, proxyPort));
 		}
-		
+
 		List<HttpClientConfigBuilderCustomizer> configBuilderCustomizers = builderCustomizers != null ? builderCustomizers.getIfAvailable() : new ArrayList<>();
 		if (!CollectionUtils.isEmpty(configBuilderCustomizers)) {
 			logger.info("Custom HttpClientConfigBuilderCustomizers detected. Applying these to the HttpClientConfig builder.");
@@ -153,12 +153,11 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 
 		Settings.Builder settingsBuilder = Settings.builder()
 				.put("cluster.name", clusterName)
-				.put("transport.type", "local")
 				.put("http.type", "netty4")
 				.put("http.port", String.valueOf(port));
 
 		if (this.esNodeproperties != null) {
-			settingsBuilder.put(this.esNodeproperties.getProperties());
+			this.esNodeproperties.getProperties().forEach(settingsBuilder::put);
 		}
 
 		Collection<Class<? extends Plugin>> plugins = scanPlugins();
@@ -195,6 +194,7 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 	 * Specific InternalNode class used to specify plugins.
 	 */
 	private static class InternalNode extends Node {
+
 		InternalNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins) {
 			super(InternalSettingsPreparer.prepareEnvironment(settings, null), classpathPlugins);
 		}

@@ -12,7 +12,7 @@ import com.google.gson.JsonObject;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.DocumentResult;
 import io.searchbox.core.SearchResult;
-import org.elasticsearch.search.SearchHitField;
+import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,16 +43,12 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 	private EntityMapper entityMapper;
 	private MappingContext<? extends ElasticsearchPersistentEntity<?>, ElasticsearchPersistentProperty> mappingContext;
 
-	public DefaultJestResultsMapper() {
-		this.entityMapper = new DefaultEntityMapper();
-	}
-
 	public DefaultJestResultsMapper(EntityMapper entityMapper) {
 		this.entityMapper = entityMapper;
 	}
 
 	public DefaultJestResultsMapper(MappingContext<? extends ElasticsearchPersistentEntity<?>, ElasticsearchPersistentProperty> mappingContext) {
-		this.entityMapper = new DefaultEntityMapper();
+		this.entityMapper = new DefaultEntityMapper(mappingContext);
 		this.mappingContext = mappingContext;
 	}
 
@@ -134,7 +130,7 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 		return result;
 	}
 
-	private <T> T mapEntity(Collection<SearchHitField> values, Class<T> clazz) {
+	private <T> T mapEntity(Collection<DocumentField> values, Class<T> clazz) {
 		return mapEntity(buildJSONFromFields(values), clazz);
 	}
 
@@ -149,13 +145,14 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 		}
 	}
 
-	private String buildJSONFromFields(Collection<SearchHitField> values) {
+	private String buildJSONFromFields(Collection<DocumentField> values) {
 		JsonFactory nodeFactory = new JsonFactory();
-		try {
-			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-			JsonGenerator generator = nodeFactory.createGenerator(stream, JsonEncoding.UTF8);
+		try (
+				ByteArrayOutputStream stream = new ByteArrayOutputStream();
+				JsonGenerator generator = nodeFactory.createGenerator(stream, JsonEncoding.UTF8);
+		) {
 			generator.writeStartObject();
-			for (SearchHitField value : values) {
+			for (DocumentField value : values) {
 				if (value.getValues().size() > 1) {
 					generator.writeArrayFieldStart(value.getName());
 					for (Object val : value.getValues()) {
@@ -180,10 +177,8 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 		ElasticsearchPersistentProperty idProperty = persistentEntity.getIdProperty();
 
 		// Only deal with text because ES generated Ids are strings !
-		if (idProperty != null) {
-			if (idProperty.getType().isAssignableFrom(String.class)) {
-				persistentEntity.getPropertyAccessor(entity).setProperty(idProperty, id);
-			}
+		if ((idProperty != null) && (idProperty.getType().isAssignableFrom(String.class))) {
+			persistentEntity.getPropertyAccessor(entity).setProperty(idProperty, id);
 		}
 	}
 }
