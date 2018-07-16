@@ -18,6 +18,7 @@ public class ElasticsearchJestProperties {
 	private int maxTotalConnection = 50;
 	private int defaultMaxTotalConnectionPerRoute = 50;
 	private int readTimeout = 5000;
+	private long maxConnectionIdleTime = 0L; // Idle connection reaping disabled by default
 	private Boolean multiThreaded = true;
 	
 	/**
@@ -75,6 +76,14 @@ public class ElasticsearchJestProperties {
 
 	public void setReadTimeout(int readTimeout) {
 		this.readTimeout = readTimeout;
+	}
+
+	public long getMaxConnectionIdleTime() {
+		return maxConnectionIdleTime;
+	}
+
+	public void setMaxConnectionIdleTime(long maxConnectionIdleTime) {
+		this.maxConnectionIdleTime = maxConnectionIdleTime;
 	}
 
 	public Boolean getMultiThreaded() {

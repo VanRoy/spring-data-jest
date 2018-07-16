@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.searchbox.client.JestClient;
@@ -110,6 +111,7 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 		HttpClientConfig.Builder builder = new HttpClientConfig.Builder(uri)
 			.maxTotalConnection(properties.getMaxTotalConnection())
 			.defaultMaxTotalConnectionPerRoute(properties.getDefaultMaxTotalConnectionPerRoute())
+			.maxConnectionIdleTime(properties.getMaxConnectionIdleTime(), TimeUnit.MILLISECONDS)
 			.readTimeout(properties.getReadTimeout())
 			.multiThreaded(properties.getMultiThreaded());
 
