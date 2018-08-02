@@ -76,12 +76,11 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static com.github.vanroy.springdata.jest.MappingBuilder.buildMapping;
-import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.elasticsearch.index.VersionType.EXTERNAL;
 import static org.elasticsearch.index.query.QueryBuilders.moreLikeThisQuery;
 import static org.elasticsearch.index.query.QueryBuilders.wrapperQuery;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Jest implementation of ElasticsearchOperations.
@@ -208,9 +207,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	public <T> boolean putMapping(Class<T> clazz) {
 		if (clazz.isAnnotationPresent(Mapping.class)) {
 			String mappingPath = clazz.getAnnotation(Mapping.class).mappingPath();
-			if (isNotBlank(mappingPath)) {
+			if (hasText(mappingPath)) {
 				String mappings = readFileFromClasspath(mappingPath);
-				if (isNotBlank(mappings)) {
+				if (hasText(mappings)) {
 					return putMapping(clazz, mappings);
 				}
 			} else {
@@ -753,8 +752,8 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	@SuppressWarnings("unchecked")
 	public <T> void delete(DeleteQuery deleteQuery, Class<T> clazz) {
 
-		String indexName = isNotBlank(deleteQuery.getIndex()) ? deleteQuery.getIndex() : getPersistentEntityFor(clazz).getIndexName();
-		String typeName = isNotBlank(deleteQuery.getType()) ? deleteQuery.getType() : getPersistentEntityFor(clazz).getIndexType();
+		String indexName = hasText(deleteQuery.getIndex()) ? deleteQuery.getIndex() : getPersistentEntityFor(clazz).getIndexName();
+		String typeName = hasText(deleteQuery.getType()) ? deleteQuery.getType() : getPersistentEntityFor(clazz).getIndexType();
 		Integer pageSize = deleteQuery.getPageSize() != null ? deleteQuery.getPageSize() : 1000;
 		Long scrollTimeInMillis = deleteQuery.getScrollTimeInMillis() != null ? deleteQuery.getScrollTimeInMillis() : 10000L;
 
@@ -1100,8 +1099,8 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	@Override
 	public <T> Page<T> moreLikeThis(MoreLikeThisQuery query, Class<T> clazz) {
 		ElasticsearchPersistentEntity persistentEntity = getPersistentEntityFor(clazz);
-		String indexName = isNotBlank(query.getIndexName()) ? query.getIndexName() : persistentEntity.getIndexName();
-		String type = isNotBlank(query.getType()) ? query.getType() : persistentEntity.getIndexType();
+		String indexName = hasText(query.getIndexName()) ? query.getIndexName() : persistentEntity.getIndexName();
+		String type = hasText(query.getType()) ? query.getType() : persistentEntity.getIndexType();
 
 		Assert.notNull(indexName, "No 'indexName' defined for MoreLikeThisQuery");
 		Assert.notNull(type, "No 'type' defined for MoreLikeThisQuery");
@@ -1148,11 +1147,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 //            aliasAction.setFilter(query.getFilterBuilder());
 		} else if (query.getFilter() != null) {
 			aliasAction.setFilter(query.getFilter());
-		} else if (isNotBlank(query.getRouting())) {
+		} else if (hasText(query.getRouting())) {
 			aliasAction.addRouting(query.getRouting());
-		} else if (isNotBlank(query.getSearchRouting())) {
+		} else if (hasText(query.getSearchRouting())) {
 			aliasAction.addSearchRouting(query.getSearchRouting());
-		} else if (isNotBlank(query.getIndexRouting())) {
+		} else if (hasText(query.getIndexRouting())) {
 			aliasAction.addIndexRouting(query.getIndexRouting());
 		}
 		return executeWithAcknowledge(new ModifyAliases.Builder(aliasAction.build()).build());
@@ -1326,9 +1325,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	private Index prepareIndex(IndexQuery query) {
 		try {
-			String indexName = isBlank(query.getIndexName()) ? retrieveIndexNameFromPersistentEntity(query.getObject()
+			String indexName = !hasText(query.getIndexName()) ? retrieveIndexNameFromPersistentEntity(query.getObject()
 					.getClass())[0] : query.getIndexName();
-			String type = isBlank(query.getType()) ? retrieveTypeFromPersistentEntity(query.getObject().getClass())[0]
+			String type = !hasText(query.getType()) ? retrieveTypeFromPersistentEntity(query.getObject().getClass())[0]
 					: query.getType();
 
 			Index.Builder indexBuilder;
@@ -1373,8 +1372,8 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	}
 
 	private Update prepareUpdate(UpdateQuery query) {
-		String indexName = isNotBlank(query.getIndexName()) ? query.getIndexName() : getPersistentEntityFor(query.getClazz()).getIndexName();
-		String type = isNotBlank(query.getType()) ? query.getType() : getPersistentEntityFor(query.getClazz()).getIndexType();
+		String indexName = hasText(query.getIndexName()) ? query.getIndexName() : getPersistentEntityFor(query.getClazz()).getIndexName();
+		String type = hasText(query.getType()) ? query.getType() : getPersistentEntityFor(query.getClazz()).getIndexType();
 		Assert.notNull(indexName, "No index defined for Query");
 		Assert.notNull(type, "No type define for Query");
 		Assert.notNull(query.getId(), "No Id define for Query");
@@ -1429,9 +1428,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 	private <T> boolean createIndexWithSettings(Class<T> clazz) {
 		if (clazz.isAnnotationPresent(Setting.class)) {
 			String settingPath = clazz.getAnnotation(Setting.class).settingPath();
-			if (isNotBlank(settingPath)) {
+			if (hasText(settingPath)) {
 				String settings = readFileFromClasspath(settingPath);
-				if (isNotBlank(settings)) {
+				if (hasText(settings)) {
 					return createIndex(getPersistentEntityFor(clazz).getIndexName(), settings);
 				}
 			} else {

@@ -15,7 +15,6 @@
  */
 package com.github.vanroy.springdata.jest;
 
-import static org.apache.commons.lang.StringUtils.*;
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 import static org.springframework.util.StringUtils.*;
 
@@ -82,7 +81,7 @@ class MappingBuilder {
 		// Properties
 		XContentBuilder xContentBuilder = mapping.startObject(FIELD_PROPERTIES);
 
-		mapEntity(xContentBuilder, clazz, true, idFieldName, EMPTY, false, FieldType.Auto, null);
+		mapEntity(xContentBuilder, clazz, true, idFieldName, "", false, FieldType.Auto, null);
 
 		return xContentBuilder.endObject().endObject().endObject();
 	}
@@ -113,7 +112,7 @@ class MappingBuilder {
 
 			if (field.isAnnotationPresent(Mapping.class)) {
 				String mappingPath = field.getAnnotation(Mapping.class).mappingPath();
-				if (isNotBlank(mappingPath)) {
+				if (hasText(mappingPath)) {
 					ClassPathResource mappings = new ClassPathResource(mappingPath);
 					if (mappings.exists()) {
 						xContentBuilder.rawField(field.getName(), mappings.getInputStream(), XContentType.JSON);
@@ -131,7 +130,7 @@ class MappingBuilder {
 					continue;
 				}
 				boolean nestedOrObject = isNestedOrObjectField(field);
-				mapEntity(xContentBuilder, getFieldType(field), false, EMPTY, field.getName(), nestedOrObject, singleField.type(), field.getAnnotation(Field.class));
+				mapEntity(xContentBuilder, getFieldType(field), false, "", field.getName(), nestedOrObject, singleField.type(), field.getAnnotation(Field.class));
 				if (nestedOrObject) {
 					continue;
 				}
@@ -212,10 +211,10 @@ class MappingBuilder {
 			xContentBuilder.field(COMPLETION_MAX_INPUT_LENGTH, annotation.maxInputLength());
 			xContentBuilder.field(COMPLETION_PRESERVE_POSITION_INCREMENTS, annotation.preservePositionIncrements());
 			xContentBuilder.field(COMPLETION_PRESERVE_SEPARATORS, annotation.preserveSeparators());
-			if (isNotBlank(annotation.searchAnalyzer())) {
+			if (hasText(annotation.searchAnalyzer())) {
 				xContentBuilder.field(FIELD_SEARCH_ANALYZER, annotation.searchAnalyzer());
 			}
-			if (isNotBlank(annotation.analyzer())) {
+			if (hasText(annotation.analyzer())) {
 				xContentBuilder.field(FIELD_INDEX_ANALYZER, annotation.analyzer());
 			}
 		}
@@ -255,10 +254,10 @@ class MappingBuilder {
 		if(!fieldAnnotation.index()) {
 			xContentBuilder.field(FIELD_INDEX, fieldAnnotation.index());
 		}
-		if (isNotBlank(fieldAnnotation.searchAnalyzer())) {
+		if (hasText(fieldAnnotation.searchAnalyzer())) {
 			xContentBuilder.field(FIELD_SEARCH_ANALYZER, fieldAnnotation.searchAnalyzer());
 		}
-		if (isNotBlank(fieldAnnotation.analyzer())) {
+		if (hasText(fieldAnnotation.analyzer())) {
 			xContentBuilder.field(FIELD_INDEX_ANALYZER, fieldAnnotation.analyzer());
 		}
 		xContentBuilder.endObject();
@@ -279,10 +278,10 @@ class MappingBuilder {
 		if(!annotation.index()) {
 			builder.field(FIELD_INDEX, annotation.index());
 		}
-		if (isNotBlank(annotation.searchAnalyzer())) {
+		if (hasText(annotation.searchAnalyzer())) {
 			builder.field(FIELD_SEARCH_ANALYZER, annotation.searchAnalyzer());
 		}
-		if (isNotBlank(annotation.indexAnalyzer())) {
+		if (hasText(annotation.indexAnalyzer())) {
 			builder.field(FIELD_INDEX_ANALYZER, annotation.indexAnalyzer());
 		}
 		if (annotation.fielddata()) {

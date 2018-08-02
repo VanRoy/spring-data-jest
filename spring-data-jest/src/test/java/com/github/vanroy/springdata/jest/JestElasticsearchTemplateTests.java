@@ -64,9 +64,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static com.github.vanroy.springdata.jest.utils.IndexBuilder.buildIndex;
-import static org.apache.commons.lang.RandomStringUtils.randomNumeric;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -132,7 +132,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnCountForGivenCriteriaQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -149,7 +149,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnCountForGivenSearchQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -166,7 +166,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnObjectForGivenId() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 		IndexQuery indexQuery = getIndexQuery(sampleEntity);
@@ -196,12 +196,12 @@ public class JestElasticsearchTemplateTests {
 		// given
 		List<IndexQuery> indexQueries;
 		// first document
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
 		// second document
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -234,14 +234,14 @@ public class JestElasticsearchTemplateTests {
 		// given
 		List<IndexQuery> indexQueries;
 		// first document
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
 				.message("some message")
 				.type("type1")
 				.version(System.currentTimeMillis()).build();
 
 		// second document
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2)
 				.message("some message")
 				.type("type2")
@@ -299,7 +299,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnPageForGivenSearchQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -322,12 +322,12 @@ public class JestElasticsearchTemplateTests {
 		// given
 		List<IndexQuery> indexQueries;
 		// first document
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
 		// second document
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -345,7 +345,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldDoBulkUpdate() {
 		//given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		String messageBeforeUpdate = "some test message";
 		String messageAfterUpdate = "test message";
 
@@ -378,7 +378,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldDeleteDocumentForGivenId() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -397,7 +397,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldDeleteEntityForGivenId() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -416,7 +416,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldDeleteDocumentForGivenQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -439,7 +439,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldFilterSearchResultsForGivenFilter() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -460,21 +460,21 @@ public class JestElasticsearchTemplateTests {
 		// given
 		List<IndexQuery> indexQueries = new ArrayList<>();
 		// first document
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
 				.message("abc")
 				.rate(10)
 				.version(System.currentTimeMillis()).build();
 
 		// second document
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2)
 				.message("xyz")
 				.rate(5)
 				.version(System.currentTimeMillis()).build();
 
 		// third document
-		String documentId3 = randomNumeric(5);
+		String documentId3 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3)
 				.message("xyz")
 				.rate(15)
@@ -499,21 +499,21 @@ public class JestElasticsearchTemplateTests {
 		// given
 		List<IndexQuery> indexQueries;
 		// first document
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
 				.message("abc")
 				.rate(10)
 				.version(System.currentTimeMillis()).build();
 
 		// second document
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2)
 				.message("xyz")
 				.rate(5)
 				.version(System.currentTimeMillis()).build();
 
 		// third document
-		String documentId3 = randomNumeric(5);
+		String documentId3 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3)
 				.message("xyz")
 				.rate(15)
@@ -538,7 +538,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldExecuteStringQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -559,7 +559,7 @@ public class JestElasticsearchTemplateTests {
 	@Ignore("Find how to activate plugins")
 	public void shouldUseScriptedFields() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = new SampleEntity();
 		sampleEntity.setId(documentId);
 		sampleEntity.setRate(2);
@@ -590,11 +590,11 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnPageableResultsGivenStringQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("some message 1")
 				.version(System.currentTimeMillis()).build();
 		
-		documentId = randomNumeric(5);
+		documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId).message("some message 2")
 				.version(System.currentTimeMillis()).build();
 
@@ -615,7 +615,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnSortedPageableResultsGivenStringQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = new SampleEntity();
 		sampleEntity.setId(documentId);
 		sampleEntity.setMessage("some message");
@@ -638,7 +638,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnObjectMatchingGivenStringQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -669,7 +669,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldExecuteGivenCriteriaQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("test message")
 				.version(System.currentTimeMillis()).build();
 
@@ -688,7 +688,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldDeleteGivenCriteriaQuery() throws InterruptedException {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("test message")
 				.version(System.currentTimeMillis()).build();
 
@@ -712,7 +712,7 @@ public class JestElasticsearchTemplateTests {
 	@SuppressWarnings("unchecked")
 	public void shouldReturnSpecifiedFields() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		String message = "some test message";
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message(message)
 				.version(System.currentTimeMillis()).build();
@@ -748,7 +748,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnFieldsBasedOnSourceFilter() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		String message = "some test message";
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message(message)
 				.type("type1")
@@ -787,7 +787,7 @@ public class JestElasticsearchTemplateTests {
 				+ "we want our search server to be always available, we want to be able to start with one machine and scale to hundreds, "
 				+ "we want real-time search, we want simple multi-tenancy, and we want a solution that is built for the cloud.";
 
-		String documentId1 = randomNumeric(5);
+		String documentId1 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId1).message(sampleMessage)
 				.version(System.currentTimeMillis()).build();
 
@@ -795,7 +795,7 @@ public class JestElasticsearchTemplateTests {
 
 		elasticsearchTemplate.index(indexQuery);
 
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 
 		elasticsearchTemplate.index(getIndexQuery(SampleEntity.builder().id(documentId2).message(sampleMessage)
 				.version(System.currentTimeMillis()).build()));
@@ -1121,20 +1121,20 @@ public class JestElasticsearchTemplateTests {
 		// given
 		List<IndexQuery> indexQueries;
 		// first document
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
 				.message("test message")
 				.version(System.currentTimeMillis()).build();
 
 		// second document
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2)
 				.message("test test")
 				.rate(5)
 				.version(System.currentTimeMillis()).build();
 
 		// third document
-		String documentId3 = randomNumeric(5);
+		String documentId3 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3)
 				.message("some message")
 				.rate(15)
@@ -1162,20 +1162,20 @@ public class JestElasticsearchTemplateTests {
 	public void shouldReturnListForGivenStringQuery() {
 		// given
 		// first document
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
 				.message("test message")
 				.version(System.currentTimeMillis()).build();
 
 		// second document
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2)
 				.message("test test")
 				.rate(5)
 				.version(System.currentTimeMillis()).build();
 
 		// third document
-		String documentId3 = randomNumeric(5);
+		String documentId3 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3)
 				.message("some message")
 				.rate(15)
@@ -1255,7 +1255,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldDoPartialUpdateForExistingDocument() {
 		//given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		String messageBeforeUpdate = "some test message";
 		String messageAfterUpdate = "test message";
 
@@ -1286,7 +1286,7 @@ public class JestElasticsearchTemplateTests {
 	public void shouldThrowExceptionIfDocumentDoesNotExistWhileDoingPartialUpdate() {
 		// when
 		IndexRequest indexRequest = new IndexRequest();
-		UpdateQuery updateQuery = new UpdateQueryBuilder().withId(randomNumeric(5))
+		UpdateQuery updateQuery = new UpdateQueryBuilder().withId(String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6))
 				.withClass(SampleEntity.class).withIndexRequest(indexRequest).build();
 		elasticsearchTemplate.update(updateQuery);
 	}
@@ -1294,7 +1294,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldDoUpsertIfDocumentDoesNotExist() {
 		//given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		String message = "test message";
 		IndexRequest indexRequest = new IndexRequest();
 		indexRequest.source("message", message);
@@ -1315,7 +1315,7 @@ public class JestElasticsearchTemplateTests {
 	public void shouldReturnHighlightedFieldsForGivenQueryAndFields() {
 
 		//given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		String actualMessage = "some test message";
 		String highlightedMessage = "some <em>test</em> message";
 
@@ -1364,7 +1364,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldDeleteDocumentBySpecifiedTypeUsingDeleteQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId)
 				.message("some message")
 				.version(System.currentTimeMillis()).build();
@@ -1390,7 +1390,7 @@ public class JestElasticsearchTemplateTests {
 	public void shouldIndexNotDocumentEntity() {
 
 		// given
-		BasicEntity entity = new BasicEntity(randomNumeric(1), "aFirstName");
+		BasicEntity entity = new BasicEntity(String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 2), "aFirstName");
 
 		IndexQuery indexQuery = new IndexQuery();
 		indexQuery.setObject(entity);
@@ -1640,7 +1640,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldIndexSampleEntityWithIndexAndTypeAtRuntime() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId)
 				.message("some message")
 				.version(System.currentTimeMillis()).build();
@@ -1664,7 +1664,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldIndexVersionedEntity() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		BasicEntity entity = new BasicEntity(documentId, "test");
 
 		IndexQuery indexQuery = new IndexQueryBuilder().withId(documentId)
@@ -1692,7 +1692,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnCountForGivenCriteriaQueryWithGivenIndexUsingCriteriaQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1713,7 +1713,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnCountForGivenSearchQueryWithGivenIndexUsingSearchQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1736,7 +1736,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnCountForGivenCriteriaQueryWithGivenIndexAndTypeUsingCriteriaQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1758,7 +1758,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldReturnCountForGivenSearchQueryWithGivenIndexAndTypeUsingSearchQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1783,7 +1783,7 @@ public class JestElasticsearchTemplateTests {
 	public void shouldReturnCountForGivenCriteriaQueryWithGivenMultiIndices() {
 		// given
 		cleanUpIndices();
-		String documentId1 = randomNumeric(5);
+		String documentId1 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId1).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1792,7 +1792,7 @@ public class JestElasticsearchTemplateTests {
 				.withObject(sampleEntity1)
 				.build();
 
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("some test message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1820,7 +1820,7 @@ public class JestElasticsearchTemplateTests {
 	public void shouldReturnCountForGivenSearchQueryWithGivenMultiIndices() {
 		// given
 		cleanUpIndices();
-		String documentId1 = randomNumeric(5);
+		String documentId1 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId1).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1829,7 +1829,7 @@ public class JestElasticsearchTemplateTests {
 				.withObject(sampleEntity1)
 				.build();
 
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("some test message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1896,7 +1896,7 @@ public class JestElasticsearchTemplateTests {
 	public void shouldReturnCountForGivenCriteriaQueryWithGivenIndexNameForSpecificIndex() {
 		// given
 		cleanUpIndices();
-		String documentId1 = randomNumeric(5);
+		String documentId1 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId1).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1905,7 +1905,7 @@ public class JestElasticsearchTemplateTests {
 				.withObject(sampleEntity1)
 				.build();
 
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("some test message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1933,7 +1933,7 @@ public class JestElasticsearchTemplateTests {
 	public void shouldReturnCountForGivenSearchQueryWithGivenIndexNameForSpecificIndex() {
 		// given
 		cleanUpIndices();
-		String documentId1 = randomNumeric(5);
+		String documentId1 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId1).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1942,7 +1942,7 @@ public class JestElasticsearchTemplateTests {
 				.withObject(sampleEntity1)
 				.build();
 
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("some test message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1968,7 +1968,7 @@ public class JestElasticsearchTemplateTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void shouldThrowAnExceptionForGivenCriteriaQueryWhenNoIndexSpecifiedForCountQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -1988,7 +1988,7 @@ public class JestElasticsearchTemplateTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void shouldThrowAnExceptionForGivenSearchQueryWhenNoIndexSpecifiedForCountQuery() {
 		// given
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -2095,7 +2095,7 @@ public class JestElasticsearchTemplateTests {
 	@Test
 	public void shouldTestResultsAcrossMultipleIndices() {
 		// given
-		String documentId1 = randomNumeric(5);
+		String documentId1 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId1).message("some message")
 				.version(System.currentTimeMillis()).build();
 
@@ -2104,7 +2104,7 @@ public class JestElasticsearchTemplateTests {
 				.withObject(sampleEntity1)
 				.build();
 
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2).message("some test message")
 				.version(System.currentTimeMillis()).build();
 
@@ -2137,8 +2137,8 @@ public class JestElasticsearchTemplateTests {
 
 		// Given
 
-		HetroEntity1 entity1 = new HetroEntity1(randomNumeric(3), "aFirstName");
-		HetroEntity2 entity2 = new HetroEntity2(randomNumeric(4), "aLastName");
+		HetroEntity1 entity1 = new HetroEntity1(String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 4), "aFirstName");
+		HetroEntity2 entity2 = new HetroEntity2(String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 5), "aLastName");
 
 		IndexQuery idxQuery1 = new IndexQueryBuilder().withIndexName(INDEX_1_NAME).withId(entity1.getId()).withObject(entity1).build();
 		IndexQuery idxQuery2 = new IndexQueryBuilder().withIndexName(INDEX_2_NAME).withId(entity2.getId()).withObject(entity2).build();
@@ -2229,21 +2229,21 @@ public class JestElasticsearchTemplateTests {
 
 		List<IndexQuery> indexQueries = new ArrayList<>();
 		// first document
-		String documentId = randomNumeric(5);
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId)
 				.message("abc")
 				.rate(10)
 				.version(System.currentTimeMillis()).build();
 
 		// second document
-		String documentId2 = randomNumeric(5);
+		String documentId2 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId2)
 				.message("xyz")
 				.rate(5)
 				.version(System.currentTimeMillis()).build();
 
 		// third document
-		String documentId3 = randomNumeric(5);
+		String documentId3 = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity3 = SampleEntity.builder().id(documentId3)
 				.message("xyz")
 				.rate(15)
