@@ -2,8 +2,8 @@ package com.github.vanroy.springdata.jest.utils;
 
 import java.lang.reflect.Field;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Created by akonczak on 02/12/2015.
@@ -12,7 +12,7 @@ public class IndexBuilder {
 
 	public static IndexQuery buildIndex(Object object) {
 		for (Field f : object.getClass().getDeclaredFields()) {
-			if (ArrayUtils.isNotEmpty(f.getAnnotationsByType(org.springframework.data.annotation.Id.class))) {
+			if (!ObjectUtils.isEmpty(f.getAnnotationsByType(org.springframework.data.annotation.Id.class))) {
 				try {
 					f.setAccessible(true);
 					IndexQuery indexQuery = new IndexQuery();

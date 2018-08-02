@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Jest implementation of Spring Data Elasticsearch results mapper.
@@ -139,7 +139,7 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 	}
 
 	private <T> T mapEntity(String source, Class<T> clazz) {
-		if (isBlank(source)) {
+		if (!hasText(source)) {
 			return null;
 		}
 		try {
