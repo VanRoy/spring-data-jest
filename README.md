@@ -41,7 +41,7 @@ For specific case of AWS ES Domain (with Request Signing) add this dependency:
 <dependency>
     <groupId>vc.inreach.aws</groupId>
     <artifactId>aws-signing-request-interceptor</artifactId>
-    <version>0.0.16</version>
+    <version>0.0.21</version>
 </dependency>
 ```
 
