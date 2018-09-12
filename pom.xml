@@ -47,9 +47,9 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 
 		<!-- Dependencies version -->
-		<springboot>2.0.0.RELEASE</springboot>
-		<spring>5.0.4.RELEASE</spring>
-		<springdataes>3.0.5.RELEASE</springdataes>
+		<springboot>2.0.4.RELEASE</springboot>
+		<spring>5.0.8.RELEASE</spring>
+		<springdataes>3.0.10.RELEASE</springdataes>
 		<jest>5.3.3</jest>
 		<gson>2.8.0</gson>
 		<awssigning>0.0.21</awssigning>
@@ -57,7 +57,7 @@
 		<jna>4.2.2</jna>
 		<hamcrest>1.3</hamcrest>
 		<junit>4.12</junit>
-		<lombok>1.16.8</lombok>
+		<lombok>1.18.2</lombok>
 		<mockito>1.10.19</mockito>
 		<logback>1.1.9</logback>
 		<aws>1.11.132</aws>
@@ -152,19 +152,19 @@
 				<version>${logback}</version>
 				<scope>test</scope>
 			</dependency>
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-api</artifactId>
-                <version>${log4j}</version>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-api</artifactId>
+				<version>${log4j}</version>
 				<scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-core</artifactId>
-                <version>${log4j}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.logging.log4j</groupId>
+				<artifactId>log4j-core</artifactId>
+				<version>${log4j}</version>
 				<scope>test</scope>
-            </dependency>
-            <dependency>
+			</dependency>
+			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-test</artifactId>
 				<version>${spring}</version>
@@ -182,7 +182,6 @@
 				<version>${lombok}</version>
 				<scope>test</scope>
 			</dependency>
-
 		</dependencies>
 
 	</dependencyManagement>
