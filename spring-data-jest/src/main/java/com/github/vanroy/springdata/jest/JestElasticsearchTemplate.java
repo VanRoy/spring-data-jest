@@ -188,11 +188,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		CreateIndex.Builder createIndexBuilder = new CreateIndex.Builder(indexName);
 
 		if (settings instanceof String) {
-			createIndexBuilder.settings(String.valueOf(settings));
+			createIndexBuilder.payload(String.valueOf(settings));
 		} else if (settings instanceof Map) {
-			createIndexBuilder.settings(settings);
-		} else if (settings instanceof XContentBuilder) {
-			createIndexBuilder.settings(settings);
+			createIndexBuilder.payload((Map)settings);
 		}
 
 		return executeWithAcknowledge(createIndexBuilder.build());
