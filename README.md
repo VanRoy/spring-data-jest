@@ -2,7 +2,7 @@ Spring Data Jest
 =========================
 [![Apache License 2](https://img.shields.io/badge/license-ASF2-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0.txt)
 [![Build Status](https://travis-ci.org/VanRoy/spring-data-jest.svg?branch=master)](https://travis-ci.org/VanRoy/spring-data-jest)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.vanroy/spring-boot-starter-data-jest/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.vanroy/spring-boot-starter-data-jest/)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.vanroy/spring-boot-starter-data-jest/badge.svg?style=default)](https://maven-badges.herokuapp.com/maven-central/com.github.vanroy/spring-boot-starter-data-jest/)
 
 Spring Data implementation for ElasticSearch based on Jest Rest client
 
