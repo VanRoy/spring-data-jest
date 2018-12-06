@@ -13,7 +13,7 @@ Versions
 
 |   spring data jest |      spring boot     | spring data elasticsearch |  jest  | elasticsearch |
 |:------------------:|:--------------------:|:-------------------------:|:------:|:-------------:|
-|   3.2.0.RELEASE    |         2.1.0        |       3.2.1.RELEASE       |  6.3.1 |      6.2.2    |
+|   3.2.0.RELEASE    |         2.1.0        |       3.1.3.RELEASE       |  6.3.1 |      6.2.2    |
 |   3.1.5.RELEASE    |         2.0.5        |      3.0.10.RELEASE       |  5.3.4 |      5.5.0    |
 |   3.0.0.RELEASE    |       2.0.0.M4       |       3.0.0.RELEASE       |  5.3.2 |      5.5.0    |
 |   2.3.1.RELEASE    |         1.5.x        |       2.1.0.RELEASE       |  2.0.4 |      2.4.4    |
