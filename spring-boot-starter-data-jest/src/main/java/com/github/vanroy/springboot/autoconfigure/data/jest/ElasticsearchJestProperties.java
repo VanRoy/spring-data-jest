@@ -11,7 +11,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "spring.data.jest")
 public class ElasticsearchJestProperties {
 
-	private List<String> uris;
+	private List<String> uri;
 	private String username;
 	private String password;
 
@@ -32,12 +32,12 @@ public class ElasticsearchJestProperties {
 		return this.proxy;
 	}
 
-	public List<String> getUris() {
-		return uris;
+	public List<String> getUri() {
+		return uri;
 	}
 
-	public void setUris(List<String> uris) {
-		this.uris = uris;
+	public void setUri(List<String> uri) {
+		this.uri = uri;
 	}
 
 	public String getUsername() {
