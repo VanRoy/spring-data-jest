@@ -593,7 +593,7 @@ public class JestElasticsearchTemplateTests {
 		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity1 = SampleEntity.builder().id(documentId).message("some message 1")
 				.version(System.currentTimeMillis()).build();
-		
+
 		documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
 		SampleEntity sampleEntity2 = SampleEntity.builder().id(documentId).message("some message 2")
 				.version(System.currentTimeMillis()).build();
@@ -1240,6 +1240,8 @@ public class JestElasticsearchTemplateTests {
 
 		// when
 		assertThat(elasticsearchTemplate.putMapping("test-custom-mapping", "mapping", xContentBuilder), is(true));
+		//then
+		elasticsearchTemplate.deleteIndex("test-custom-mapping");
 	}
 
 	@Test
