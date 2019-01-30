@@ -70,6 +70,7 @@ import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
@@ -201,6 +202,12 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		return createIndex(getPersistentEntityFor(clazz).getIndexName(), settings);
 	}
 
+	private String xContentBuilderToString(XContentBuilder builder) {
+		builder.close();
+		ByteArrayOutputStream bos = (ByteArrayOutputStream) builder.getOutputStream();
+		return bos.toString();
+	}
+
 	@Override
 	public <T> boolean putMapping(Class<T> clazz) {
 		if (clazz.isAnnotationPresent(Mapping.class)) {
@@ -223,12 +230,12 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 				throw new IllegalArgumentException(String.format("No Id property for %s found", clazz.getSimpleName()));
 			}
 
-			mapping = buildMapping(
+			mapping =xContentBuilderToString( buildMapping(
 				clazz,
 				persistentEntity.getIndexType(),
 				idProperty.getFieldName(),
 				persistentEntity.getParentType()
-			).string();
+			));
 
 		} catch (Exception e) {
 			throw new ElasticsearchException("Failed to build mapping for " + clazz.getSimpleName(), e);
@@ -249,9 +256,9 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			} else if (mapping instanceof Map) {
 				XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON);
 				builder.map((Map) mapping);
-				source = builder.string();
+				source = xContentBuilderToString( builder );
 			} else if (mapping instanceof XContentBuilder) {
-				source = ((XContentBuilder) mapping).string();
+				source = xContentBuilderToString(((XContentBuilder) mapping));
 			} else if (mapping instanceof DocumentMapper) {
 				source = ((DocumentMapper) mapping).mappingSource().toString();
 			}
