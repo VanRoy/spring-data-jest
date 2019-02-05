@@ -144,3 +144,12 @@ Sample with Spring Boot and embedded Elasticsearch :
 Sample with Spring Boot and Elasticsearch on AWS (managed) :
 
 [https://github.com/VanRoy/spring-data-jest/tree/master/spring-boot-sample-data-jest-aws](https://github.com/VanRoy/spring-data-jest/tree/master/spring-boot-sample-data-jest-aws)
+
+Sponsors
+--------
+
+### JetBrains
+
+[![JetBrains](jetbrains.png)]( https://www.jetbrains.com/?from=SpringDataJest)
+
+[JetBrains](https://www.jetbrains.com/?from=SpringDataJest) supports our open source project by sponsoring a [All Products Packs](https://www.jetbrains.com/products.html?from=SpringDataJest) within their [Free Open Source License](https://www.jetbrains.com/buy/opensource/?from=SpringDataJest) program.
