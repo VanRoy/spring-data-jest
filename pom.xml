@@ -49,7 +49,7 @@
 		<!-- Dependencies version -->
 		<springboot>2.1.2.RELEASE</springboot>
 		<spring>5.1.4.RELEASE</spring>
-		<springdataes>3.1.2.RELEASE</springdataes>
+		<springdataes>3.1.3.RELEASE</springdataes>
 		<springdatacommons>2.1.4.RELEASE</springdatacommons>
 		<jest>6.3.1</jest>
 		<gson>2.8.0</gson>

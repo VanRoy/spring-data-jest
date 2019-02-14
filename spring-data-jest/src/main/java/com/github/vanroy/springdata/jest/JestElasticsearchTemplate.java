@@ -202,12 +202,6 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		return createIndex(getPersistentEntityFor(clazz).getIndexName(), settings);
 	}
 
-	private String xContentBuilderToString(XContentBuilder builder) {
-		builder.close();
-		ByteArrayOutputStream bos = (ByteArrayOutputStream) builder.getOutputStream();
-		return bos.toString();
-	}
-
 	@Override
 	public <T> boolean putMapping(Class<T> clazz) {
 		if (clazz.isAnnotationPresent(Mapping.class)) {
@@ -230,7 +224,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 				throw new IllegalArgumentException(String.format("No Id property for %s found", clazz.getSimpleName()));
 			}
 
-			mapping =xContentBuilderToString( buildMapping(
+			mapping = xContentBuilderToString(buildMapping(
 				clazz,
 				persistentEntity.getIndexType(),
 				idProperty.getFieldName(),
@@ -256,7 +250,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			} else if (mapping instanceof Map) {
 				XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON);
 				builder.map((Map) mapping);
-				source = xContentBuilderToString( builder );
+				source = xContentBuilderToString(builder);
 			} else if (mapping instanceof XContentBuilder) {
 				source = xContentBuilderToString(((XContentBuilder) mapping));
 			} else if (mapping instanceof DocumentMapper) {
@@ -270,6 +264,12 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		} catch (Exception e) {
 			throw new ElasticsearchException("Failed to build mapping for " + indexName + ":" + type, e);
 		}
+	}
+
+	private String xContentBuilderToString(XContentBuilder builder) {
+		builder.close();
+		ByteArrayOutputStream bos = (ByteArrayOutputStream) builder.getOutputStream();
+		return bos.toString();
 	}
 
 	@Override
@@ -1231,8 +1231,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 	private Index prepareIndex(IndexQuery query) {
 		try {
-			String indexName = !hasText(query.getIndexName()) ? retrieveIndexNameFromPersistentEntity(query.getObject()
-					.getClass())[0] : query.getIndexName();
+			String indexName = !hasText(query.getIndexName()) ? retrieveIndexNameFromPersistentEntity(query.getObject().getClass())[0] : query.getIndexName();
 			String type = !hasText(query.getType()) ? retrieveTypeFromPersistentEntity(query.getObject().getClass())[0]
 					: query.getType();
 

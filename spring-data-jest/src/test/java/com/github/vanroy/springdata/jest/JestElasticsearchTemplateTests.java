@@ -2019,8 +2019,12 @@ public class JestElasticsearchTemplateTests {
 				"            \"analysis\": {\n" +
 				"                \"analyzer\": {\n" +
 				"                    \"emailAnalyzer\": {\n" +
-				"                        \"type\": \"custom\",\n" +
-				"                        \"tokenizer\": \"uax_url_email\"\n" +
+				"                        \"tokenizer\": \"emailTokenizer\"\n" +
+				"                    }\n" +
+				"                },\n" +
+				"                \"tokenizer\": {\n" +
+				"                    \"emailTokenizer\": {\n" +
+				"                        \"type\": \"standard\"\n" +
 				"                    }\n" +
 				"                }\n" +
 				"            }\n" +
@@ -2036,7 +2040,7 @@ public class JestElasticsearchTemplateTests {
 		String emailAnalyzer = (String) map.get("index.analysis.analyzer.emailAnalyzer.tokenizer");
 		assertThat(elasticsearchTemplate.indexExists("test-index"), is(true));
 		assertThat(hasAnalyzer, is(true));
-		assertThat(emailAnalyzer, is("uax_url_email"));
+		assertThat(emailAnalyzer, is("emailTokenizer"));
 	}
 
 	/*
@@ -2073,8 +2077,12 @@ public class JestElasticsearchTemplateTests {
 				"            \"analysis\": {\n" +
 				"                \"analyzer\": {\n" +
 				"                    \"emailAnalyzer\": {\n" +
-				"                        \"type\": \"custom\",\n" +
-				"                        \"tokenizer\": \"uax_url_email\"\n" +
+				"                        \"tokenizer\": \"emailTokenizer\"\n" +
+				"                    }\n" +
+				"                },\n" +
+				"                \"tokenizer\": {\n" +
+				"                    \"emailTokenizer\": {\n" +
+				"                        \"type\": \"standard\"\n" +
 				"                    }\n" +
 				"                }\n" +
 				"            }\n" +
@@ -2201,8 +2209,11 @@ public class JestElasticsearchTemplateTests {
 				"  analysis:\n" +
 				"    analyzer:\n" +
 				"      emailAnalyzer:\n" +
-				"        type: custom\n" +
-				"        tokenizer: uax_url_email\n"));
+				"        tokenizer: emailTokenizer\n" +
+				"    tokenizer:\n" +
+				"      emailTokenizer:\n" +
+				"        type: uax_url_email\n"
+		));
 	}
 
 	@Test
