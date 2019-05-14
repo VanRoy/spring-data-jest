@@ -30,7 +30,10 @@ import vc.inreach.aws.request.AWSSigningRequestInterceptor;
  */
 @Configuration
 @ConditionalOnClass(AWSSigner.class)
-@AutoConfigureAfter(name = "org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration")
+@AutoConfigureAfter(name = {
+        "org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration",
+        "org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration"
+})
 public class ElasticsearchJestAWSAutoConfiguration {
 
 	private static final String AWS_SERVICE = "es";
