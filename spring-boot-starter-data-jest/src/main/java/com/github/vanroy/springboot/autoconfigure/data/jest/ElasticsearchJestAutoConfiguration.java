@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
@@ -69,7 +70,7 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 	@ConditionalOnMissingBean(JestClient.class)
 	@ConditionalOnMissingClass("org.elasticsearch.node.Node")
 	public JestClient client() {
-		return createJestClient(properties.getUri());
+		return createJestClient(properties.getUris());
 	}
 
 	@Bean
@@ -77,11 +78,11 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 	@ConditionalOnClass(Node.class)
 	public JestClient testClient() throws NodeValidationException {
 
-		if (StringUtils.isEmpty(properties.getUri())) {
+		if (CollectionUtils.isEmpty(properties.getUris())) {
 			int httpPort = createInternalNode();
-			return createJestClient("http://localhost:" + httpPort);
+			return createJestClient(Lists.newArrayList("http://localhost:" + httpPort));
 		} else {
-			return createJestClient(properties.getUri());
+			return createJestClient(properties.getUris());
 		}
 	}
 
@@ -103,12 +104,12 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 
 	/**
 	 * Create Jest client with URI
-	 * @param uri URI of Elasticsearch
+	 * @param uris URI list of Elasticsearch
 	 * @return JestClient
 	 */
-	private JestClient createJestClient(String uri) {
+	private JestClient createJestClient(List<String> uris) {
 
-		HttpClientConfig.Builder builder = new HttpClientConfig.Builder(uri)
+		HttpClientConfig.Builder builder = new HttpClientConfig.Builder(uris)
 			.maxTotalConnection(properties.getMaxTotalConnection())
 			.defaultMaxTotalConnectionPerRoute(properties.getDefaultMaxTotalConnectionPerRoute())
 			.maxConnectionIdleTime(properties.getMaxConnectionIdleTime(), TimeUnit.MILLISECONDS)

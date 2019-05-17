@@ -2,6 +2,9 @@ package com.github.vanroy.springboot.autoconfigure.data.jest;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Jest Elasticsearch properties.
  * @author Julien Roy
@@ -9,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "spring.data.jest")
 public class ElasticsearchJestProperties {
 
-	private String uri;
+	private List<String> uris;
 	private String username;
 	private String password;
 
@@ -30,12 +33,16 @@ public class ElasticsearchJestProperties {
 		return this.proxy;
 	}
 
-	public String getUri() {
-		return uri;
+	public List<String> getUris() {
+		return uris;
+	}
+
+	public void setUris(List<String> uris) {
+		this.uris = uris;
 	}
 
 	public void setUri(String uri) {
-		this.uri = uri;
+		this.uris = Collections.singletonList(uri);
 	}
 
 	public String getUsername() {
