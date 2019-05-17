@@ -2277,6 +2277,24 @@ public class JestElasticsearchTemplateTests {
 		assertThat(sampleEntities.getContent().get(0).getRate(), is(sampleEntity2.getRate()));
 	}
 
+	@Test
+	public void shouldSetScoreWhenAnnotationPresent() {
+		ScoreEntity scoreEntity = new ScoreEntity(String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6), "message");
+		IndexQuery indexQuery = new IndexQueryBuilder().withId(scoreEntity.getId()).withIndexName(INDEX_1_NAME).withObject(scoreEntity).build();
+		elasticsearchTemplate.index(indexQuery);
+		elasticsearchTemplate.refresh(INDEX_1_NAME);
+
+		SearchQuery searchQuery = new NativeSearchQueryBuilder().withIndices(INDEX_1_NAME).withTypes("score").withQuery(matchAllQuery()).build();
+		AggregatedPage<ScoreEntity> page = elasticsearchTemplate.queryForPage(searchQuery, ScoreEntity.class);
+
+		assertThat(page.getTotalElements(), equalTo(1L));
+
+		ScoreEntity result = page.getContent().get(0);
+
+		assertThat(result.getScore(), notNullValue());
+		assertThat(result.getScore(), equalTo(1.0f));
+	}
+
 	private IndexQuery getIndexQuery(SampleEntity sampleEntity) {
 		return new IndexQueryBuilder().withId(sampleEntity.getId()).withObject(sampleEntity).build();
 	}

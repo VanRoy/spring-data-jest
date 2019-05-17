@@ -17,6 +17,7 @@ import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.ElasticsearchException;
+import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.core.DefaultEntityMapper;
 import org.springframework.data.elasticsearch.core.EntityMapper;
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentEntity;
@@ -88,7 +89,9 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 
 		for (SearchScrollResult.Hit<JsonObject, Void> hit : response.getHits(JsonObject.class)) {
 			if (hit != null) {
-				results.add(mapSource(hit.source, clazz));
+				T result = mapSource(hit.source, clazz);
+				setPersistentEntityScore(result, hit.score, clazz);
+				results.add(result);
 			}
 		}
 
@@ -105,7 +108,9 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 
 		for (SearchResult.Hit<JsonObject, Void> hit : response.getHits(JsonObject.class)) {
 			if (hit != null) {
-				results.add(mapSource(hit.source, clazz));
+				T result = mapSource(hit.source, clazz);
+				setPersistentEntityScore(result, hit.score, clazz);
+				results.add(result);
 			}
 		}
 
@@ -179,6 +184,16 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 		// Only deal with text because ES generated Ids are strings !
 		if ((idProperty != null) && (idProperty.getType().isAssignableFrom(String.class))) {
 			persistentEntity.getPropertyAccessor(entity).setProperty(idProperty, id);
+		}
+	}
+
+	private <T> void setPersistentEntityScore(T result, Double score, Class<T> clazz) {
+		if ((score != null) && clazz.isAnnotationPresent(Document.class)) {
+			ElasticsearchPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(clazz);
+
+			if (entity.hasScoreProperty() && (entity.getScoreProperty() != null)) {
+				entity.getPropertyAccessor(result).setProperty(entity.getScoreProperty(), score.floatValue());
+			}
 		}
 	}
 }
