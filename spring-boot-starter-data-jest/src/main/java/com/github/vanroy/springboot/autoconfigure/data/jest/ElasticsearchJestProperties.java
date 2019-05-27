@@ -17,7 +17,8 @@ public class ElasticsearchJestProperties {
 	private String password;
 
 	private String awsRegion;
-
+	private String defaultSchemeForDiscoveredNodes = "https";
+	private String discoveryEnabled;
 	private int maxTotalConnection = 50;
 	private int defaultMaxTotalConnectionPerRoute = 50;
 	private int readTimeout = 5000;
@@ -108,7 +109,24 @@ public class ElasticsearchJestProperties {
 	public void setAwsRegion(String awsRegion) {
 		this.awsRegion = awsRegion;
 	}
-	
+
+	public String getDefaultSchemeForDiscoveredNodes() {
+		return defaultSchemeForDiscoveredNodes;
+	}
+
+
+	public void setDefaultSchemeForDiscoveredNodes(String defaultSchemeForDiscoveredNodes) {
+		this.defaultSchemeForDiscoveredNodes = defaultSchemeForDiscoveredNodes;
+	}
+
+	public String getDiscoveryEnabled() {
+		return discoveryEnabled;
+	}
+
+	public void setDiscoveryEnabled(String discoveryEnabled) {
+		this.discoveryEnabled = discoveryEnabled;
+	}
+
 	public static class Proxy {
 
 		/**

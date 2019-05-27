@@ -114,7 +114,9 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 			.defaultMaxTotalConnectionPerRoute(properties.getDefaultMaxTotalConnectionPerRoute())
 			.maxConnectionIdleTime(properties.getMaxConnectionIdleTime(), TimeUnit.MILLISECONDS)
 			.readTimeout(properties.getReadTimeout())
-			.multiThreaded(properties.getMultiThreaded());
+			.multiThreaded(properties.getMultiThreaded())
+			.defaultSchemeForDiscoveredNodes(properties.getDefaultSchemeForDiscoveredNodes())
+			.discoveryEnabled(Boolean.parseBoolean(properties.getDiscoveryEnabled()));
 
 		if (StringUtils.hasText(this.properties.getUsername())) {
 			builder.defaultCredentials(this.properties.getUsername(), this.properties.getPassword());
