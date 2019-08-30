@@ -1150,7 +1150,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		int startRecord = 0;
 
 		if (query.getPageable() != null && query.getPageable().isPaged()) {
-			startRecord = query.getPageable().getPageNumber() * query.getPageable().getPageSize();
+			startRecord = (int) query.getPageable().getOffset();
 			searchSourceBuilder.size(query.getPageable().getPageSize());
 		}
 		searchSourceBuilder.from(startRecord);
