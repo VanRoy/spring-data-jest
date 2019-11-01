@@ -1,5 +1,14 @@
 package com.github.vanroy.springdata.jest.mapper;
 
+import static org.springframework.util.StringUtils.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -14,7 +23,6 @@ import io.searchbox.core.DocumentResult;
 import io.searchbox.core.SearchResult;
 import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.search.aggregations.AbstractAggregationBuilder;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.ElasticsearchException;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -24,15 +32,6 @@ import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersiste
 import org.springframework.data.elasticsearch.core.mapping.ElasticsearchPersistentProperty;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.util.StringUtils;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-
-import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Jest implementation of Spring Data Elasticsearch results mapper.
@@ -83,12 +82,12 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 		return results;
 	}
 
-	public <T> Page<T> mapResults(SearchScrollResult response, Class<T> clazz) {
+	public <T> AggregatedPage<T> mapResults(SearchScrollResult response, Class<T> clazz) {
 
 		LinkedList<T> results = new LinkedList<>();
 
 		for (SearchScrollResult.Hit<JsonObject, Void> hit : response.getHits(JsonObject.class)) {
-			if (hit != null) {
+			if (hit != null && hit.source != null) {
 				T result = mapSource(hit.source, clazz);
 				setPersistentEntityScore(result, hit.score, clazz);
 				results.add(result);
@@ -170,7 +169,7 @@ public class DefaultJestResultsMapper implements JestResultsMapper {
 			}
 			generator.writeEndObject();
 			generator.flush();
-			return new String(stream.toByteArray(), Charset.forName("UTF-8"));
+			return new String(stream.toByteArray(), StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			return null;
 		}

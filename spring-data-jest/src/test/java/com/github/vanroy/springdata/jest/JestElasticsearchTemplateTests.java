@@ -15,6 +15,14 @@
  */
 package com.github.vanroy.springdata.jest;
 
+import static com.github.vanroy.springdata.jest.utils.IndexBuilder.*;
+import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.github.vanroy.springdata.jest.aggregation.AggregatedPage;
 import com.github.vanroy.springdata.jest.aggregation.impl.AggregatedPageImpl;
 import com.github.vanroy.springdata.jest.entities.*;
@@ -26,6 +34,7 @@ import com.github.vanroy.springdata.jest.mapper.JestMultiGetResultMapper;
 import com.github.vanroy.springdata.jest.mapper.JestResultsMapper;
 import com.github.vanroy.springdata.jest.mapper.JestSearchResultMapper;
 import com.github.vanroy.springdata.jest.provider.CustomSearchSourceBuilderProvider;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.searchbox.client.JestClient;
@@ -62,14 +71,6 @@ import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-
-import static com.github.vanroy.springdata.jest.utils.IndexBuilder.buildIndex;
-import static org.elasticsearch.index.query.QueryBuilders.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 
 /**
  * @author Rizwan Idrees
@@ -894,7 +895,7 @@ public class JestElasticsearchTemplateTests {
 		}
 
 		@Override
-		public <T> Page<T> mapResults(SearchScrollResult response, Class<T> clazz) {
+		public <T> ScrolledPage<T> mapResults(SearchScrollResult response, Class<T> clazz) {
 			String scrollId = response.getScrollId();
 			List<T> result = new ArrayList<>();
 			for (SearchScrollResult.Hit<T, Void> searchHit : response.getHits(clazz)) {
@@ -2295,6 +2296,68 @@ public class JestElasticsearchTemplateTests {
 		assertThat(result.getScore(), equalTo(1.0f));
 	}
 
+	@Test // DATAES-487
+	public void shouldReturnSameEntityForMultiSearch() {
+
+		// given
+		List<IndexQuery> indexQueries = new ArrayList<>();
+
+		indexQueries.add(buildIndex(SampleEntity.builder().id("1").message("ab").build()));
+		indexQueries.add(buildIndex(SampleEntity.builder().id("2").message("bc").build()));
+		indexQueries.add(buildIndex(SampleEntity.builder().id("3").message("ac").build()));
+
+		elasticsearchTemplate.bulkIndex(indexQueries);
+		elasticsearchTemplate.refresh(SampleEntity.class);
+
+		// when
+		List<SearchQuery> queries = new ArrayList<>();
+
+		queries.add(new NativeSearchQueryBuilder().withQuery(termQuery("message", "ab")).build());
+		queries.add(new NativeSearchQueryBuilder().withQuery(termQuery("message", "bc")).build());
+		queries.add(new NativeSearchQueryBuilder().withQuery(termQuery("message", "ac")).build());
+
+		// then
+		List<Page<SampleEntity>> sampleEntities = elasticsearchTemplate.queryForPage(queries, SampleEntity.class);
+		for (Page<SampleEntity> sampleEntity : sampleEntities) {
+			assertThat(sampleEntity.getTotalElements(), equalTo(1L));
+		}
+	}
+
+	@Test // DATAES-487
+	public void shouldReturnDifferentEntityForMultiSearch() {
+
+		// given
+		Class<Book> clazz = Book.class;
+		elasticsearchTemplate.deleteIndex(clazz);
+		elasticsearchTemplate.createIndex(clazz);
+		elasticsearchTemplate.putMapping(clazz);
+		elasticsearchTemplate.refresh(clazz);
+
+		List<IndexQuery> indexQueries = new ArrayList<>();
+
+		indexQueries.add(buildIndex(SampleEntity.builder().id("1").message("ab").build()));
+		indexQueries.add(buildIndex(Book.builder().id("2").description("bc").build()));
+
+		elasticsearchTemplate.bulkIndex(indexQueries);
+		elasticsearchTemplate.refresh(SampleEntity.class);
+		elasticsearchTemplate.refresh(clazz);
+
+		// when
+		List<SearchQuery> queries = new ArrayList<>();
+
+		queries.add(new NativeSearchQueryBuilder().withQuery(termQuery("message", "ab")).build());
+		queries.add(new NativeSearchQueryBuilder().withQuery(termQuery("description", "bc")).build());
+
+		// then
+		List<Page<?>> pages = elasticsearchTemplate.queryForPage(queries, Lists.newArrayList(SampleEntity.class, clazz));
+		Page<?> page0 = pages.get(0);
+		assertThat(page0.getTotalElements(), equalTo(1L));
+		assertThat(page0.getContent().get(0).getClass(), equalTo(SampleEntity.class));
+		Page<?> page1 = pages.get(1);
+		assertThat(page1.getTotalElements(), equalTo(1L));
+		assertThat(page1.getContent().get(0).getClass(), equalTo(clazz));
+	}
+
 	private IndexQuery getIndexQuery(SampleEntity sampleEntity) {
 		return new IndexQueryBuilder().withId(sampleEntity.getId()).withObject(sampleEntity).build();
 	}
@@ -2305,19 +2368,5 @@ public class JestElasticsearchTemplateTests {
 			indexQueries.add(new IndexQueryBuilder().withId(sampleEntity.getId()).withObject(sampleEntity).build());
 		}
 		return indexQueries;
-	}
-
-	@Document(indexName = INDEX_2_NAME, replicas = 0, shards = 1)
-	class ResultAggregator {
-
-		private final String id;
-		private final String firstName;
-		private final String lastName;
-
-		ResultAggregator(String id, String firstName, String lastName) {
-			this.id = id;
-			this.firstName = firstName;
-			this.lastName = lastName;
-		}
 	}
 }

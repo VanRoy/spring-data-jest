@@ -16,7 +16,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpHost;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeValidationException;
 import org.elasticsearch.plugins.Plugin;
@@ -35,6 +34,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.filter.AssignableTypeFilter;
+import org.springframework.data.elasticsearch.client.NodeClientFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.SocketUtils;
@@ -166,7 +166,7 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 		Collection<Class<? extends Plugin>> plugins = scanPlugins();
 		plugins.add(Netty4Plugin.class);
 
-		this.node = new InternalNode(settingsBuilder.build(), plugins).start();
+		this.node = new NodeClientFactoryBean.TestNode(settingsBuilder.build(), plugins).start();
 
 		return Integer.parseInt(settingsBuilder.get("http.port"));
 	}
@@ -191,15 +191,5 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 					}
 				})
 				.collect(Collectors.toSet());
-	}
-
-	/**
-	 * Specific InternalNode class used to specify plugins.
-	 */
-	private static class InternalNode extends Node {
-
-		InternalNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins) {
-			super(InternalSettingsPreparer.prepareEnvironment(settings, null), classpathPlugins);
-		}
 	}
 }

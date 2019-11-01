@@ -47,6 +47,11 @@ public class ElasticsearchJestAutoConfigurationTest {
 	}
 
 	@Test
+	public void should_repository_support_find_with_custom_query() {
+		assertThat(repository.findByName("sugar").size(), is(3));
+	}
+
+	@Test
 	public void should_repository_support_find() {
 		assertThat(repository.findByNameAndText("Sugar", "Cane sugar").size(), is(2));
 		assertThat(repository.findByNameAndPrice("Sugar", 1.1f).size(), is(1));

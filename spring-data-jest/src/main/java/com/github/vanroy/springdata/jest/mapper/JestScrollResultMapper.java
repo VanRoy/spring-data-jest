@@ -1,7 +1,7 @@
 package com.github.vanroy.springdata.jest.mapper;
 
-import org.springframework.data.domain.Page;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
+import org.springframework.data.elasticsearch.core.ScrolledPage;
 
 /**
  * Jest specific scroll result mapper.
@@ -10,5 +10,5 @@ import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
  */
 public interface JestScrollResultMapper {
 
-	<T> Page<T> mapResults(SearchScrollResult response, Class<T> clazz);
+	<T> ScrolledPage<T> mapResults(SearchScrollResult response, Class<T> clazz);
 }
