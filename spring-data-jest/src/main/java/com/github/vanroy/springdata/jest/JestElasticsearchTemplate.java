@@ -40,7 +40,6 @@ import io.searchbox.indices.type.TypeExist;
 import io.searchbox.params.Parameters;
 import io.searchbox.params.SearchType;
 import org.elasticsearch.action.DocWriteResponse;
-import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.common.Nullable;
@@ -1257,6 +1256,8 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 		if (query.getMinScore() > 0) {
 			searchSourceBuilder.minScore(query.getMinScore());
 		}
+
+		searchSourceBuilder.trackScores(query.getTrackScores());
 		return searchSourceBuilder;
 	}
 

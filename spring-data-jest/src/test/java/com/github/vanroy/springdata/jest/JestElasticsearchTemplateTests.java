@@ -31,6 +31,7 @@ import com.github.vanroy.springdata.jest.internal.ExtendedSearchResult;
 import com.github.vanroy.springdata.jest.internal.MultiDocumentResult;
 import com.github.vanroy.springdata.jest.internal.SearchScrollResult;
 import com.github.vanroy.springdata.jest.mapper.JestMultiGetResultMapper;
+import com.github.vanroy.springdata.jest.mapper.JestResultsExtractor;
 import com.github.vanroy.springdata.jest.mapper.JestResultsMapper;
 import com.github.vanroy.springdata.jest.mapper.JestSearchResultMapper;
 import com.github.vanroy.springdata.jest.provider.CustomSearchSourceBuilderProvider;
@@ -41,6 +42,8 @@ import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
 import io.searchbox.core.DocumentResult;
 import io.searchbox.core.SearchResult;
+import io.searchbox.core.SearchResult.Hit;
+
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
@@ -64,7 +67,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.ElasticsearchException;
-import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.core.EntityMapper;
 import org.springframework.data.elasticsearch.core.ScrolledPage;
 import org.springframework.data.elasticsearch.core.query.*;
@@ -554,6 +556,37 @@ public class JestElasticsearchTemplateTests {
 		// then
 		assertThat(sampleEntities.getTotalElements(), equalTo(1L));
 		assertThat(sampleEntities.getContent().get(0), equalTo(sampleEntity));
+	}
+	
+	@Test
+	public void shouldTrackScores() {
+		// given
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
+		SampleEntity sampleEntity = SampleEntity.builder().id(documentId).message("some message")
+				.version(System.currentTimeMillis()).build();
+
+		IndexQuery indexQuery = getIndexQuery(sampleEntity);
+
+		elasticsearchTemplate.index(indexQuery);
+		elasticsearchTemplate.refresh(SampleEntity.class);
+
+		// when
+		final NativeSearchQuery searchQuery = new NativeSearchQueryBuilder()
+				.withQuery(termQuery("message", "message"))
+				.withSort(new FieldSortBuilder("message").order(SortOrder.ASC))
+				.withTrackScores(true).build();
+		SampleEntity result = elasticsearchTemplate.query(searchQuery, new JestResultsExtractor<SampleEntity>() {
+			public SampleEntity extract(SearchResult result) {
+				final List<Hit<SampleEntity, Void>> hits = result.getHits(SampleEntity.class);
+				assertThat(hits.size(), greaterThan(0));
+				final Hit<SampleEntity, Void> hit = hits.get(0);
+				assertThat(hit.score, notNullValue(Double.class));
+				assertThat(result.getMaxScore(), notNullValue(Float.class));
+				return hit.source;
+			}
+		});
+		// then
+		assertThat(result, notNullValue());
 	}
 
 	@Test
