@@ -2391,6 +2391,32 @@ public class JestElasticsearchTemplateTests {
 		assertThat(page1.getContent().get(0).getClass(), equalTo(clazz));
 	}
 
+	@Test
+	public void shouldReturnCollapsedResults() {
+
+		// given
+		List<IndexQuery> indexQueries = new ArrayList<>();
+
+		indexQueries.add(buildIndex(SampleEntity.builder().id("1").message("ab").rate(1).build()));
+		indexQueries.add(buildIndex(SampleEntity.builder().id("2").message("bc").rate(2).build()));
+		indexQueries.add(buildIndex(SampleEntity.builder().id("3").message("abc").rate(2).build()));
+
+		elasticsearchTemplate.bulkIndex(indexQueries);
+		elasticsearchTemplate.refresh(SampleEntity.class);
+
+		// when
+		NativeSearchQuery query = new NativeSearchQueryBuilder()
+				.withQuery(wildcardQuery("message", "*b*"))
+				.withCollapseField("rate")
+				.build();
+
+		// then
+		AggregatedPage<SampleEntity> page = elasticsearchTemplate.queryForPage(query, SampleEntity.class);
+		assertThat(page.getContent().size(), equalTo(2));
+		assertThat(page.getContent().get(0).getId(), equalTo("1"));
+		assertThat(page.getContent().get(1).getId(), equalTo("2"));
+	}
+
 	private IndexQuery getIndexQuery(SampleEntity sampleEntity) {
 		return new IndexQueryBuilder().withId(sampleEntity.getId()).withObject(sampleEntity).build();
 	}

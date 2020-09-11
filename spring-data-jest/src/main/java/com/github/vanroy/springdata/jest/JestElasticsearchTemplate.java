@@ -1297,6 +1297,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 				searchSourceBuilder.scriptField(scriptedField.fieldName(), scriptedField.script());
 			}
 		}
+
+		if (searchQuery.getCollapseBuilder() != null) {
+			searchSourceBuilder.collapse(searchQuery.getCollapseBuilder());
+		}
+
 		SearchSourceBuilder request = searchSourceBuilder.query(searchQuery.getQuery());
 		return prepareQuery(request, searchQuery);
 	}
