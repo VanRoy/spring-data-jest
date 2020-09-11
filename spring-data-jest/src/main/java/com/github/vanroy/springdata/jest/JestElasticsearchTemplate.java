@@ -265,6 +265,7 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			throw new ElasticsearchException("Failed to build mapping for " + clazz.getSimpleName(), e);
 		}
 	}
+
 	private String xContentBuilderToString(XContentBuilder builder) {
 		builder.close();
 		ByteArrayOutputStream bos = (ByteArrayOutputStream) builder.getOutputStream();

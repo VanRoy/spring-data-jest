@@ -18,12 +18,16 @@ package com.github.vanroy.springdata.jest;
 import static org.elasticsearch.common.xcontent.XContentFactory.*;
 import static org.springframework.util.StringUtils.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.core.ResolvableType;
@@ -59,6 +63,7 @@ class MappingBuilder {
 	public static final String FIELD_INDEX_ANALYZER = "analyzer";
 	public static final String FIELD_PROPERTIES = "properties";
 	public static final String FIELD_PARENT = "_parent";
+	public static final String FIELD_DYNAMIC_TEMPLATES = "dynamic_templates";
 
 	public static final String COMPLETION_PRESERVE_SEPARATORS = "preserve_separators";
 	public static final String COMPLETION_PRESERVE_POSITION_INCREMENTS = "preserve_position_increments";
@@ -73,6 +78,10 @@ class MappingBuilder {
 	static XContentBuilder buildMapping(Class clazz, String indexType, String idFieldName, String parentType) throws IOException {
 
 		XContentBuilder mapping = jsonBuilder().startObject().startObject(indexType);
+
+		// Dynamic templates
+		addDynamicTemplatesMapping(mapping, clazz);
+
 		// Parent
 		if (hasText(parentType)) {
 			mapping.startObject(FIELD_PARENT).field(FIELD_TYPE, parentType).endObject();
@@ -309,6 +318,24 @@ class MappingBuilder {
 		}
 		if (hasText(searchAnalyzer)) {
 			builder.field(FIELD_SEARCH_ANALYZER, searchAnalyzer);
+		}
+	}
+
+	private static void addDynamicTemplatesMapping(XContentBuilder builder, Class clazz) throws IOException {
+		if (clazz.isAnnotationPresent(DynamicTemplates.class)){
+			String mappingPath = ((DynamicTemplates) clazz.getAnnotation(DynamicTemplates.class)).mappingPath();
+			if (hasText(mappingPath)) {
+				String jsonString = JestElasticsearchTemplate.readFileFromClasspath(mappingPath);
+				if (hasText(jsonString)) {
+					ObjectMapper objectMapper = new ObjectMapper();
+					JsonNode jsonNode = objectMapper.readTree(jsonString).get("dynamic_templates");
+					if (jsonNode != null && jsonNode.isArray()){
+						String json = objectMapper.writeValueAsString(jsonNode);
+						builder.field(FIELD_DYNAMIC_TEMPLATES);
+						builder.rawValue(new ByteArrayInputStream(json.getBytes()), XContentType.JSON);
+					}
+				}
+			}
 		}
 	}
 
