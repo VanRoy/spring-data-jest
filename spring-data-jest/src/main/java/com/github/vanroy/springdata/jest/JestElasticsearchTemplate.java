@@ -1414,6 +1414,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 
 			Update.Builder updateBuilder = new Update.Builder(payload).index(indexName).type(type).id(query.getId());
 
+			int retryOnConflict = query.getUpdateRequest().retryOnConflict();
+			if(retryOnConflict > 0) {
+				updateBuilder.setParameter("retry_on_conflict", retryOnConflict);
+			}
+
 			return updateBuilder.build();
 		} catch (IOException e) {
 			throw new ElasticsearchException("failed to index the document [id: " + query.getId() + "]", e);
