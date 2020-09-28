@@ -1273,7 +1273,11 @@ public class JestElasticsearchTemplate implements ElasticsearchOperations, Appli
 			}
 		}
 
-		if (searchQuery.getHighlightFields() != null) {
+		if (searchQuery.getHighlightBuilder() != null) {
+
+			searchSourceBuilder.highlighter(searchQuery.getHighlightBuilder());
+
+		} else if (searchQuery.getHighlightFields() != null) {
 			HighlightBuilder highlighter = SearchSourceBuilder.highlight();
 			for (HighlightBuilder.Field highlightField : searchQuery.getHighlightFields()) {
 				highlighter.field(highlightField);
