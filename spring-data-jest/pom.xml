@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.github.vanroy</groupId>
         <artifactId>spring-data-jest-build</artifactId>
-        <version>3.3.2.RELEASE</version>
+        <version>3.3.3.RELEASE</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
