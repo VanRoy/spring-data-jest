@@ -1398,6 +1398,58 @@ public class JestElasticsearchTemplateTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
+	public void shouldReturnHighlightedFieldsForGivenQueryWithHighlightBuilder() {
+
+		//given
+		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
+		String actualMessage = "some test message";
+		String highlightedMessage = "some <em>test</em> message";
+
+		SampleEntity sampleEntity = SampleEntity.builder().id(documentId)
+				.message(actualMessage)
+				.version(System.currentTimeMillis()).build();
+
+		IndexQuery indexQuery = getIndexQuery(sampleEntity);
+
+		elasticsearchTemplate.index(indexQuery);
+		elasticsearchTemplate.refresh(SampleEntity.class);
+
+		SearchQuery searchQuery = new NativeSearchQueryBuilder()
+				.withQuery(termQuery("message", "test"))
+				.withHighlightBuilder(new HighlightBuilder().field("message"))
+				.build();
+
+
+		AggregatedPage<SampleEntity> sampleEntities = elasticsearchTemplate.queryForPage(searchQuery, SampleEntity.class, new JestSearchResultMapper() {
+			@Override
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, Pageable pageable) {
+				List<SampleEntity> chunk = new ArrayList<>();
+				for (SearchResult.Hit<JsonObject, Void> searchHit : response.getHits(JsonObject.class)) {
+					if (response.getHits(JsonObject.class).size() <= 0) {
+						return null;
+					}
+					SampleEntity user = new SampleEntity();
+					user.setId(searchHit.source.get(JestResult.ES_METADATA_ID).getAsString());
+					user.setMessage(searchHit.source.get("message").getAsString());
+					user.setHighlightedMessage(searchHit.highlight.get("message").get(0));
+					chunk.add(user);
+				}
+				if (chunk.size() > 0) {
+					return new AggregatedPageImpl<T>((List<T>) chunk);
+				}
+				return null;
+			}
+			@Override
+			public <T> AggregatedPage<T> mapResults(SearchResult response, Class<T> clazz, List<AbstractAggregationBuilder> aggregations, Pageable pageable) {
+				return mapResults(response, clazz, pageable);
+			}
+		});
+
+		assertThat(sampleEntities.getContent().get(0).getHighlightedMessage(), is(highlightedMessage));
+	}
+
+	@Test
 	public void shouldDeleteDocumentBySpecifiedTypeUsingDeleteQuery() {
 		// given
 		String documentId = String.valueOf(ThreadLocalRandom.current().nextLong()).substring(1, 6);
