@@ -23,11 +23,9 @@ public class ElasticsearchJestProperties {
 	private int defaultMaxTotalConnectionPerRoute = 50;
 	private int readTimeout = 5000;
 	private long maxConnectionIdleTime = 0L; // Idle connection reaping disabled by default
-	private Boolean multiThreaded = true;
-	
-	/**
-	 * Proxy settings.
-	 */
+	private boolean multiThreaded = true;
+	private boolean preemptiveAuth = false;
+
 	private final Proxy proxy = new Proxy();
 	
 	public Proxy getProxy() {
@@ -94,7 +92,7 @@ public class ElasticsearchJestProperties {
 		this.maxConnectionIdleTime = maxConnectionIdleTime;
 	}
 
-	public Boolean getMultiThreaded() {
+	public boolean isMultiThreaded() {
 		return multiThreaded;
 	}
 
@@ -125,6 +123,14 @@ public class ElasticsearchJestProperties {
 
 	public void setDiscoveryEnabled(String discoveryEnabled) {
 		this.discoveryEnabled = discoveryEnabled;
+	}
+
+	public boolean isPreemptiveAuth() {
+		return preemptiveAuth;
+	}
+
+	public void setPreemptiveAuth(boolean preemptiveAuth) {
+		this.preemptiveAuth = preemptiveAuth;
 	}
 
 	public static class Proxy {
