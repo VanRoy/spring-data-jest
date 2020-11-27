@@ -3,3 +3,5 @@ spring:
     elasticsearch:
       properties:
         path.home: ./target/es-${random.uuid}
+    jest:
+      pluginPackages: com.github.vanroy.springboot.autoconfigure.data.jest,org.elasticearch.fake

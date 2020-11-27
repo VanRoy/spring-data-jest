@@ -179,14 +179,21 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 	 * @return List of plugins class
 	 */
 	@SuppressWarnings("unchecked")
-	private static Collection<Class<? extends Plugin>> scanPlugins() {
+	private Collection<Class<? extends Plugin>> scanPlugins() {
 		ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
 		componentProvider.addIncludeFilter(new AssignableTypeFilter(Plugin.class));
 
-		return componentProvider.findCandidateComponents("org.elasticsearch.plugin").stream()
+		List<String> pluginPackages = getPluginPackages();
+		return pluginPackages.stream()
+				.map(p -> {
+					logger.debug("Scanning " + p + " for plugins ...");
+					return componentProvider.findCandidateComponents(p);
+				})
+				.flatMap(Collection::stream)
 				.map(BeanDefinition::getBeanClassName)
 				.map(name -> {
 					try {
+						logger.debug("Instanciating plugin " + name);
 						return (Class<? extends Plugin>) Class.forName(name);
 					} catch (ClassNotFoundException e) {
 						logger.warn("Cannot load class on plugin detection", e);
@@ -194,5 +201,17 @@ public class ElasticsearchJestAutoConfiguration implements DisposableBean {
 					}
 				})
 				.collect(Collectors.toSet());
+	}
+
+	/**
+	 * @return list of packages to scan for plugins, w/ "org.elasticsearch.plugin" included
+	 */
+	private List<String> getPluginPackages() {
+		List<String> pluginPackages = new ArrayList<>();
+		pluginPackages.add("org.elasticsearch.plugin");
+		if (this.properties.getPluginPackages() != null) {
+			pluginPackages.addAll(this.properties.getPluginPackages());
+		}
+		return pluginPackages;
 	}
 }

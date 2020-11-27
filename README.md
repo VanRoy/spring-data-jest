@@ -146,6 +146,30 @@ Sample with Spring Boot and Elasticsearch on AWS (managed) :
 
 [https://github.com/VanRoy/spring-data-jest/tree/master/spring-boot-sample-data-jest-aws](https://github.com/VanRoy/spring-data-jest/tree/master/spring-boot-sample-data-jest-aws)
 
+Plugins loading
+-------------------------------
+
+All plugins located in `org.elasticsearch.plugin` are loaded by default.
+All plugins located in packages specified in property `spring.data.jest.pluginPackages` are also loaded.
+
+### Example for Expression-lang
+In pom.xml, add plugin dependency :
+````xml
+ <dependency>
+   <groupId>org.codelibs.elasticsearch.module</groupId>
+   <artifactId>lang-expression</artifactId>
+   <version>...</version>
+ </dependency>
+````
+In application.yml, add following :
+```yml
+spring:
+    data:
+        jest:
+            pluginPackages: org.elasticsearch.script.expression
+```
+
+
 Sponsors
 --------
 

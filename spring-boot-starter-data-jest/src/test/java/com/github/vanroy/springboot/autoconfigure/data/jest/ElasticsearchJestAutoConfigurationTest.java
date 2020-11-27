@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 import com.github.vanroy.springboot.autoconfigure.data.jest.entities.Product;
 import com.github.vanroy.springboot.autoconfigure.data.jest.repositories.ProductRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +61,11 @@ public class ElasticsearchJestAutoConfigurationTest {
 	@Test
 	public void should_repository_find_all_populate_ids() {
 		assertThat(repository.findAll().iterator().next().getId(), notNullValue());
+	}
+
+	@Test
+	public void should_scan_plugins_in_specified_packages() {
+		Assertions.assertThat(MockPlugin.instancesCount).isGreaterThan(0);
 	}
 
 	@SpringBootApplication(exclude = {
