@@ -25,6 +25,7 @@ public class ElasticsearchJestProperties {
 	private long maxConnectionIdleTime = 0L; // Idle connection reaping disabled by default
 	private boolean multiThreaded = true;
 	private boolean preemptiveAuth = false;
+	private List<String> pluginPackages;
 
 	private final Proxy proxy = new Proxy();
 	
@@ -132,6 +133,10 @@ public class ElasticsearchJestProperties {
 	public void setPreemptiveAuth(boolean preemptiveAuth) {
 		this.preemptiveAuth = preemptiveAuth;
 	}
+
+	public List<String> getPluginPackages() { return pluginPackages; }
+
+	public void setPluginPackages(List<String> pluginPackages) { this.pluginPackages = pluginPackages; }
 
 	public static class Proxy {
 
