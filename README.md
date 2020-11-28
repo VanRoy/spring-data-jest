@@ -13,7 +13,7 @@ Versions
 
 |   spring data jest |      spring boot     | spring data elasticsearch |  jest  | elasticsearch |
 |:------------------:|:--------------------:|:-------------------------:|:------:|:-------------:|
-|   3.3.3.RELEASE    |         2.2.1        |       3.2.1.RELEASE       |  6.3.1 |      6.8.4    |
+|   3.3.4.RELEASE    |         2.2.1        |       3.2.1.RELEASE       |  6.3.1 |      6.8.4    |
 |   3.2.5.RELEASE    |         2.1.2        |       3.1.3.RELEASE       |  6.3.1 |      6.4.3    |
 |   3.1.5.RELEASE    |         2.0.5        |      3.0.10.RELEASE       |  5.3.4 |      5.5.0    |
 |   3.0.0.RELEASE    |       2.0.0.M4       |       3.0.0.RELEASE       |  5.3.2 |      5.5.0    |
@@ -34,7 +34,7 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-boot-starter-data-jest</artifactId>
-    <version>3.3.3.RELEASE</version>
+    <version>3.3.4.RELEASE</version>
 </dependency>
 
 <!-- Only required for start local ES node -->
@@ -87,7 +87,7 @@ Add the Maven dependency:
 <dependency>
     <groupId>com.github.vanroy</groupId>
     <artifactId>spring-data-jest</artifactId>
-    <version>3.3.3.RELEASE</version>
+    <version>3.3.4.RELEASE</version>
 </dependency>
 
 <!-- Only required for start local / embedded ES node -->
