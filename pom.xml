@@ -64,7 +64,7 @@
 		<aws>1.11.132</aws>
 		<log4j>2.7</log4j>
 
-		<elasticsearch>6.8.4</elasticsearch>
+		<elasticsearch>7.11.2</elasticsearch>
 
 		<!-- Version of maven plugins -->
 		<version.plugin.maven-compiler-plugin>3.6.1</version.plugin.maven-compiler-plugin>
