@@ -60,7 +60,7 @@
 		<junit>4.13.1</junit>
 		<lombok>1.18.2</lombok>
 		<mockito>1.10.19</mockito>
-		<logback>1.1.9</logback>
+		<logback>1.2.0</logback>
 		<aws>1.11.132</aws>
 		<log4j>2.7</log4j>
 
