@@ -62,7 +62,7 @@
 		<mockito>1.10.19</mockito>
 		<logback>1.1.9</logback>
 		<aws>1.11.132</aws>
-		<log4j>2.7</log4j>
+		<log4j>2.16.0</log4j>
 
 		<elasticsearch>6.8.4</elasticsearch>
 
