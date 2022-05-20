@@ -52,7 +52,7 @@
 		<springdataes>3.2.1.RELEASE</springdataes>
 		<springdatacommons>2.2.1.RELEASE</springdatacommons>
 		<jest>6.3.1</jest>
-		<gson>2.8.0</gson>
+		<gson>2.8.9</gson>
 		<awssigning>0.0.21</awssigning>
 		<springcloudaws>2.0.0.RELEASE</springcloudaws>
 		<jna>4.2.2</jna>
